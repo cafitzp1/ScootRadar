@@ -10,7 +10,7 @@ The app will be serverless and cloud based, optimized for use with AWS services.
 
 The application will be split into two components, one for the purpose of extracting data from the e-scooter APIs, and the other for the web app which will display the data.  
 
-![application architectural diagram](./assets/app-architecture-light.png)
+![application architectural diagram](./assets/app-architecture-light-2.png)
 
 ## Data Extraction ##
 
