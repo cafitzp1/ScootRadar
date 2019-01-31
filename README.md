@@ -10,7 +10,7 @@ The app will be serverless and cloud based, optimized for use with AWS services.
 
 The application will be split into two components, one for the purpose of extracting data from the e-scooter APIs, and the other for the web app which will display the data.  
 
-![application architectural diagram](./assets/app-architecture.png)
+![application architectural diagram](./assets/app-architecture-light.png)
 
 ## Data Extraction ##
 
@@ -84,7 +84,7 @@ init();
 
 In our implementation example, bird scooter data is logged to the console. For the purposes of the actual function execution, this data will be stored into our noSQL db.
 
-``` json
+``` js
 [ { id: '36ed5c8a-1b0b-4da9-85e8-c1560641e8d7',
     location: { latitude: 33.41589, longitude: -111.93650833333335 },
     code: '',
