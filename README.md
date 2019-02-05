@@ -119,3 +119,7 @@ The web app will be resonsible for displaying data extracted from the previous c
 
 (Only time we need the API is for selecting a specific time frame. Data will already be present for subsequent hourly changes in the display)
 ```
+
+### Project Inspiration ###
+
+http://conormclaughlin.net/2018/08/tracking-the-flow-of-bird-scooters-across-dc/

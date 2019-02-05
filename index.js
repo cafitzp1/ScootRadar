@@ -17,6 +17,7 @@ async function init() {
             verifyCode
         } = await prompt.get(['verifyCode']);
         await bird.verifyEmail(verifyCode);
+        // setInterval(getScoots(), SCOOT_INTERVAL_MS);
         getScoots();
     } catch (err) {
         console.log(err)
