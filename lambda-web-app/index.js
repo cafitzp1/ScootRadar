@@ -1,8 +1,8 @@
 const Bird = require('./lib/bird');
 const bird = new Bird();
 
-const ASU_LAT = 33.4166061;
-const ASU_LONG = -111.9363706;
+const ASU_LAT = 33.4187;
+const ASU_LONG = -111.9347;
 const RADIUS = 1;
 
 // this is the method that begins our code
@@ -19,7 +19,7 @@ exports.handler = async (event) => {
         // now with the returned scooter data, we format a response for our API
         let response = await generateResponse(200, scoots);
 
-        // response returns scooter data to the web page, scoot data resides in response.body
+        // response returns scooter data to the web page
         return response;
     } catch (error) {
         // there was a problem somewhere, so we return a bad response

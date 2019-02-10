@@ -4,7 +4,7 @@ const ASU_LONG = 33.4187;
 const ASU_LAT = -111.9347;
 const ZOOM = 16;
 
-const api_url = "https://9j600ki9gk.execute-api.us-west-2.amazonaws.com/default/scoot-radar";
+const apiURL = "https://9j600ki9gk.execute-api.us-west-2.amazonaws.com/default/scoot-radar";
 
 const map = new L.Map("mapid", {
     center: [ASU_LONG, ASU_LAT],
@@ -18,16 +18,16 @@ $(document).ready(function () {
 });
 
 async function getLiveData() {
-    // xhr will request data from our API
+    // xhr will request data from our lambda function, using our REST API
     let xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
-    xhr.open('GET', api_url, true);
+    xhr.open('GET', apiURL, true);
     xhr.send(null);
     xhr.onreadystatechange = function() {
         if (this.readyState === 4 && this.status === 200) {
-            // API communicates with code in 'lambda-web-app', scooter data is returned
-            let data = JSON.parse(this.response),
-                birds = data.birds;
+            // API communicates with code in lambda-web-app, scooter data is returned
+            let data = JSON.parse(this.response);
+            let birds = data.birds;
             addHeat(birds);
         }
     }
@@ -42,7 +42,8 @@ function addHeat(birds) {
         birdLocations.push([bird.location.latitude, bird.location.longitude, 1]);
     }
 
-    let heat = L.heatLayer(birdLocations,{
+    // using birdLocations array, add heat circles to our map object
+    let heat = L.heatLayer(birdLocations, {
         radius: 20,
         blur: 15, 
         maxZoom: 17,
