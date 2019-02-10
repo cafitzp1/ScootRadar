@@ -16,11 +16,18 @@ const headers = {
 
 exports.handler = async (event) => {
     try {
+        // async/await means methods will invoke in sequence
+
+        // login has to occur first, we get authentication token we need for next step
         await login();
 
+        // with authentication token, we can request scooters nearby
         let scoots = await getScootersNearby();
+
+        // now with the returned scooter data, we format a response for the API
         let response = await generateResponse(200, scoots);
 
+        // response returns scooter data to the web page, scoot data in response.body
         return response;
     } catch (error) {
         console.error(error);
@@ -103,7 +110,7 @@ function generateResponse(status, content) {
     });
 }
 
-// for testing purposes
+// for testing purposes... uncomment the test method call and run node index.js
 
 async function test() {
     try {
