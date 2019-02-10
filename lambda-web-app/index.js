@@ -7,6 +7,12 @@ const ASU_LAT = 33.4166061;
 const ASU_LONG = -111.9363706;
 const RADIUS = 1;
 
+const baseURL = 'https://api.bird.com'
+const deviceID = faker.random.uuid();
+const platform = 'ios';
+const appVersion = '3.0.5';
+const authorization = '';
+
 const headers = {
     'Device-id': faker.random.uuid(),
     'Platform': 'ios',
@@ -14,6 +20,7 @@ const headers = {
     'Authorization': ''
 }
 
+// this is the method that begins our code
 exports.handler = async (event) => {
     try {
         // async/await means methods will invoke in sequence
@@ -30,16 +37,12 @@ exports.handler = async (event) => {
         // response returns scooter data to the web page, scoot data in response.body
         return response;
     } catch (error) {
+        // there was a problem somewhere, so we return a bad response
+        let response = await generateResponse(200, scoots);
+
         console.error(error);
     }
 };
-
-function setAccessToken(accessToken) {
-    headers['Authorization'] = ''
-    delete headers['Authorization']
-
-    headers['Authorization'] = `Bird ${accessToken}`
-}
 
 function login(email = faker.internet.email()) {
     return new Promise(function (resolve, reject) {
@@ -62,6 +65,13 @@ function login(email = faker.internet.email()) {
             }
         });
     });
+}
+
+function setAccessToken(accessToken) {
+    headers['Authorization'] = ''
+    delete headers['Authorization']
+
+    headers['Authorization'] = `Bird ${accessToken}`
 }
 
 function getScootersNearby(latitude = ASU_LAT, longitude = ASU_LONG, radius = RADIUS) {
@@ -97,11 +107,12 @@ function getScootersNearby(latitude = ASU_LAT, longitude = ASU_LONG, radius = RA
 
 function generateResponse(status, content) {
     return new Promise(function (resolve, reject) {
+        // response statusCode and headers are required everytime
         let response = {
             statusCode: status,
             headers: {
-                "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-                "Access-Control-Allow-Credentials": true // Required for cookies, authorization headers with HTTPS 
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true
             },
             body: JSON.stringify(content),
         };
@@ -110,7 +121,9 @@ function generateResponse(status, content) {
     });
 }
 
-// for testing purposes... uncomment the test method call and run node index.js
+// ----- FOR TESTING ----- //
+// `test` function will only be called while running 
+// the `lambda-web-app (test)` debug configuration
 
 async function test() {
     try {
@@ -125,4 +138,6 @@ async function test() {
     }
 }
 
-// test();
+if (process.env.config == 'debug') {
+    test();
+}
