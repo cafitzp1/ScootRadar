@@ -15,7 +15,7 @@ class Bird {
 
     /**
      * Login to generate an authentication token
-     * @param {*} email Email to provide (optional)
+     * @param {string} email Email to provide (optional)
      */
     login(email = faker.internet.email()) {
         return new Promise((resolve, reject) => {
@@ -32,7 +32,7 @@ class Bird {
                 method: 'POST'
             }, (error, response, body) => {
                 if (!error && response.statusCode == 200) {
-                    resolve(this.authorization = response.body.token);
+                    resolve(this.setAccessToken(response.body.token));
                 } else {
                     reject(error);
                 }
@@ -41,10 +41,18 @@ class Bird {
     }
 
     /**
+     * Set the access token for bird API authorization
+     * @param {string} accessToken 
+     */
+    setAccessToken(accessToken) {
+        this.authorization = `Bird ${accessToken}`
+    }
+
+    /**
      * Request scooters within a specified radius of a particular XY coordinate
-     * @param {*} latitude Latitude coordinate
-     * @param {*} longitude Longitude coordinate
-     * @param {*} radius Radius in miles
+     * @param {string} latitude Latitude coordinate
+     * @param {string} longitude Longitude coordinate
+     * @param {string} radius Radius in miles
      */
     getScootersNearby(latitude, longitude, radius) {
         return new Promise((resolve, reject) => {
@@ -55,21 +63,18 @@ class Bird {
                     'Device-id': this.deviceID,
                     'Platform': this.platform,
                     'App-Version': this.appVersion,
-                    'Location': `{
-                        "latitude":${latitude},
-                        "longitude":${longitude},
-                        "altitude":500,
-                        "accuracy":100,
-                        "speed":-1,
-                        "heading":-1
-                    }`
+                    'Location': JSON.stringify({
+                        latitude: latitude,
+                        longitude: longitude,
+                        altitude: 500,
+                        accuracy: 100,
+                        speed: -1,
+                        heading: -1
+                    })
                 },
                 method: 'GET',
                 url: this.baseURL + 
-                    'bird/nearby' + 
-                    `?latitude=${latitude}` +
-                    `&longitude=${longitude}` + 
-                    `&radius=${radius}`,
+                    `bird/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}`,
                 params: {
                     latitude: latitude,
                     longitude: longitude,
@@ -82,7 +87,7 @@ class Bird {
                 if (!error && response.statusCode == 200) {
                     resolve(body);
                 } else {
-                    reject(error);
+                    reject(body);
                 }
             });
         });

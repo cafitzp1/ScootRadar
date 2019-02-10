@@ -9,8 +9,7 @@ const api_url = "https://9j600ki9gk.execute-api.us-west-2.amazonaws.com/default/
 const map = new L.Map("mapid", {
     center: [ASU_LONG, ASU_LAT],
     zoom: ZOOM,
-    maxZoom: ZOOM + 2,
-    minZoom: ZOOM - 1
+    maxZoom: ZOOM + 2
 }).addLayer(new L.TileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"));
 
 // this is the first function that gets called when our web page loads
@@ -24,10 +23,11 @@ async function getLiveData() {
     xhr.responseType = 'json';
     xhr.open('GET', api_url, true);
     xhr.send(null);
-    xhr.onreadystatechange = function () {
+    xhr.onreadystatechange = function() {
         if (this.readyState === 4 && this.status === 200) {
             // API communicates with code in 'lambda-web-app', scooter data is returned
-            let birds = JSON.parse(this.response).birds;
+            let data = JSON.parse(this.response),
+                birds = data.birds;
             addHeat(birds);
         }
     }
