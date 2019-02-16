@@ -1,35 +1,67 @@
-"use strict";
+const AWS = require("aws-sdk");
+const Util = require('./lib/util');
+const Bird = require('./lib/bird');
+const bird = new Bird();
 
-const Bird = require('node-bird')
-const bird = new Bird()
+const ASU_LAT = 33.4187;
+const ASU_LONG = -111.9347;
+const RADIUS = 1;
+const REGION = "us-west-2";
+const ENDPOINT = "https://dynamodb.us-west-2.amazonaws.com";
+const MONTH_S = 2592000;
 
-const SCOOT_RANGE_MI = 1;
-const SCOOT_INTERVAL_MS = 600000; // 10 min
-const ASU_LONG = 33.4166061;
-const ASU_LAT = -111.9363706;
-const AUTH = "";
-
-async function init() {
+exports.handler = async (event) => {
     try {
-        // wait for successful login, token is stored to bird object
-        if (AUTH.length == 0 || AUTH == undefined) {
-            await bird.login();
-        } else {
-            bird.setAccessToken(AUTH);
-        }
+        AWS.config.update({
+            region: REGION,
+            endpoint: ENDPOINT
+        });
 
-        // now that we have the token, we can request scooters
-        let birds = await bird.getScootersNearby(ASU_LONG, ASU_LAT, SCOOT_RANGE_MI);
+        await bird.login();
+        let scoots = await bird.getScootersNearby(ASU_LAT, ASU_LONG, RADIUS);
 
-        // bird details
-        let details = await bird.getScooterDetails(birds[0].id)
-
-        // log results to the console
-        console.log(details);
-
-    } catch (err) {
-        console.log(err)
+        // send data to the db
+        putData(scoots);
+    } catch (error) {
+        console.error(error);
     }
+};
+
+function putData(birdData) {
+    return new Promise((resolve, reject) => {
+        console.log("Importing into DynamoDB.");
+
+        let docClient = new AWS.DynamoDB.DocumentClient(),
+            timeString = Util.getTimeNowString(),
+            timeNowEpoch = (new Date).getTime();
+
+        // attributes: primary key, item data, created, and ttl
+        let params = {
+            TableName: "Records",
+            Item: {
+                "recordID": timeString,
+                "record": birdData,
+                "dateCreated": timeNowEpoch,
+                "ttl": Date.now() + MONTH_S
+            }
+        };
+
+        docClient.put(params, (err, data) => {
+            if (err) {
+                reject(console.error("Unable to add", params.Item.recordID, ". Error JSON:", JSON.stringify(err, null, 2)));
+            } else {
+                resolve(console.log("PutItem succeeded:", params.Item.recordID));
+            }
+        });
+    });
 }
 
-init();
+// ----- FOR TESTING ----- //
+
+async function test() {
+    exports.handler(null);
+}
+
+if (process.env.config == 'debug') {
+    test();
+}
