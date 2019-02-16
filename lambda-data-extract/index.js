@@ -42,7 +42,7 @@ function putData(birdData) {
                 "recordID": timeString,
                 "record": birdData,
                 "dateCreated": timeNowEpoch,
-                "ttl": Date.now() + MONTH_S
+                "ttl": timeNowEpoch + MONTH_S
             }
         };
 

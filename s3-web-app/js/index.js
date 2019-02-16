@@ -17,20 +17,34 @@ $(document).ready(function () {
     getLiveData();
 });
 
-async function getLiveData() {
-    // xhr will request data from our lambda function, using our REST API
-    let xhr = new XMLHttpRequest();
-    xhr.responseType = 'json';
-    xhr.open('GET', apiURL, true);
-    xhr.send(null);
-    xhr.onreadystatechange = function() {
-        if (this.readyState === 4 && this.status === 200) {
-            // API communicates with code in lambda-web-app, scooter data is returned
-            let data = JSON.parse(this.response);
+function getLiveData() {
+    // let xhr = new XMLHttpRequest();
+    // xhr.responseType = 'json';
+    // xhr.open('GET', apiURL, true);
+    // xhr.send(null);
+    // xhr.onreadystatechange = function() {
+    //     if (this.readyState === 4 && this.status === 200) {
+    //         // API communicates with code in lambda-web-app, scooter data is returned
+    //         let data = JSON.parse(this.response);
+    //         let birds = data.birds;
+    //         addHeat(birds);
+    //     }
+    // }
+
+    $.ajax({
+        type: 'GET',
+        url: apiURL,
+        data: 'date=20190216',
+        success: (response) => {
+            console.log('AJAX successful');
+            let data = JSON.parse(response);
             let birds = data.birds;
             addHeat(birds);
-        }
-    }
+        }, 
+        error: (error) => {
+            console.error(error);
+        } 
+    });
 }
 
 function addHeat(birds) {
@@ -45,7 +59,7 @@ function addHeat(birds) {
     // using birdLocations array, add heat circles to our map object
     let heat = L.heatLayer(birdLocations, {
         radius: 20,
-        blur: 15, 
+        blur: 15,
         maxZoom: 17,
     }).addTo(map);
 
