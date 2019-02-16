@@ -65,3 +65,14 @@ async function test() {
 if (process.env.config == 'debug') {
     test();
 }
+
+/* query examples:
+    # count of items in DB
+    $ aws dynamodb scan --table-name Records --select COUNT
+
+    # items with only the "recordID" and "dateCreated" attributes
+    $ aws dynamodb scan --table-name Records --projection-expression "recordID, dateCreated"
+
+    # all item data
+    $ aws dynamodb scan --table-name Records
+*/
