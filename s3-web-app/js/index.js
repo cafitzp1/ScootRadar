@@ -15,36 +15,70 @@ const map = new L.Map("mapid", {
 // this is the first function that gets called when our web page loads
 $(document).ready(function () {
     getLiveData();
+    initializeDayPicker();
+
+    // $("#live-btn").click(function () {
+    //     alert("Handler for .click() called.");
+    // });
 });
 
-function getLiveData() {
-    // let xhr = new XMLHttpRequest();
-    // xhr.responseType = 'json';
-    // xhr.open('GET', apiURL, true);
-    // xhr.send(null);
-    // xhr.onreadystatechange = function() {
-    //     if (this.readyState === 4 && this.status === 200) {
-    //         // API communicates with code in lambda-web-app, scooter data is returned
-    //         let data = JSON.parse(this.response);
-    //         let birds = data.birds;
-    //         addHeat(birds);
-    //     }
-    // }
+function initializeDayPicker() {
+    let date_input = $('input[name="date"]'); //our date input has the name "date"
+    let container = $('.bootstrap-iso form').length > 0 ? $('.bootstrap-iso form').parent() : "body";
+    let options = {
+        format: 'mm/dd/yyyy',
+        container: container,
+        todayHighlight: true,
+        autoclose: true,
+    };
+    date_input.datepicker(options);
+}
 
+function getLiveData() {
     $.ajax({
         type: 'GET',
         url: apiURL,
-        data: 'date=20190216',
         success: (response) => {
             console.log('AJAX successful');
             let data = JSON.parse(response);
             let birds = data.birds;
             addHeat(birds);
-        }, 
+        },
         error: (error) => {
             console.error(error);
-        } 
+        }
     });
+}
+
+function initHistoricalData() {
+    console.log('historical data init clicked');
+    $('#date-input').prop('disabled', false);
+    $('#submit-btn').prop('disabled', false);
+}
+
+function initLiveData() {
+    console.log('live data init clicked');
+    $('#date-input').prop('disabled', true);
+    $('#submit-btn').prop('disabled', true);
+}
+
+function getStoredData(date) {
+    alert('getStoredData handler fired');
+
+    // $.ajax({
+    //     type: 'GET',
+    //     url: apiURL,
+    //     data: `date=${date}`,
+    //     success: (response) => {
+    //         console.log('AJAX successful');
+    //         let data = JSON.parse(response);
+    //         let birds = data.birds;
+    //         addHeat(birds);
+    //     }, 
+    //     error: (error) => {
+    //         console.error(error);
+    //     } 
+    // });
 }
 
 function addHeat(birds) {

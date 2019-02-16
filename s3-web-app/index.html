@@ -10,15 +10,56 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
   <link rel="stylesheet" href="./css/index.css">
   <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
-  <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js">
-  </script>
+  <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- bootstrap day picker plugin -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css" />
+
   <title>Scoot Radar</title>
 </head>
 
 <body>
+  <div id="toggle-btn" class="btn-group btn-group-toggle" data-toggle="buttons">
+    <label class="btn btn-dark">
+      <input type="radio" name="options" id="live-btn" autocomplete="off" onclick="initLiveData()"> Live
+    </label>
+    <label class="btn btn-dark">
+      <input type="radio" name="options" id="historical-btn" autocomplete="off" onclick="initHistoricalData()">
+      Historical
+    </label>
+  </div>
+
+  <!-- day picker form -->
+  <div class="bootstrap-iso">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6 col-sm-6 col-xs-12">
+
+          <!-- Form code begins -->
+          <form method="post">
+            <div id="day-picker" class="form-group">
+              <!-- Date input -->
+              <input class="form-control" id="date-input" placeholder="MM/DD/YYY" type="text" disabled />
+              <!-- Submit button -->
+              <button class="btn btn-dark " id="submit-btn" type="button" disabled>Submit</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="mapid"></div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="./js/index.js"></script>
 </body>
 
 </html>
+
+<!-- BOOTSTRAP COMPONENT DOCUMENTATION -->
+<!-- https://getbootstrap.com/docs/4.3/components/alerts/ -->
+
+<!-- DAY PICKER TUTORIAL -->
+<!-- https://formden.com/blog/date-picker -->

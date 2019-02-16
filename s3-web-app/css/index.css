@@ -18,3 +18,21 @@ body {
 #mapid {
     height: 100vh;
 }
+
+#toggle-btn {
+    position: absolute;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    vertical-align: middle;
+    z-index: 4000;
+    margin-left: 75px;
+    margin-top: 20px;
+}
+
+#day-picker {
+    display: inline-flex;
+    position: absolute;
+    z-index: 4000;
+    margin-top: 21px;
+    margin-left: 250px;
+}

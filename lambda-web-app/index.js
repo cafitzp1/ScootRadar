@@ -26,6 +26,26 @@ exports.handler = async (event) => {
 
 function getDataFromDB(date) {
     // implement functionality to read data from the db
+
+    let day = new Date(date).get;
+    let start = date.setHours(0, 0, 0, 0);
+    let end = date.setHours(23, 59, 59, 999);
+    // let startEpoch = start.getTime()
+
+    const {
+        Items
+    } = await this.dynamoDb.query({
+        TableName: 'Records',
+        IndexName: 'dateCreated',
+        KeyConditionExpression: '#dateCreated BETWEEN :start AND :end',
+        ExpressionAttributeNames: {
+            '#dateCreated': 'dateCreated',
+        },
+        ExpressionAttributeValues: {
+            ':fromDateTime': '2017-02-20T01:58:49.710Z',
+            ':toDateTime': new Date().toISOString(),
+        }
+    });
 }
 
 function generateResponse(status, content) {
