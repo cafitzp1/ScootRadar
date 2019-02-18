@@ -12,7 +12,6 @@ const MONTH_S = 2592000;
 
 exports.handler = async (event, context) => {
     try {
-
         // configure DynamoDB endpoint
         AWS.config.update({
             region: REGION,
@@ -20,7 +19,7 @@ exports.handler = async (event, context) => {
         });
 
         // get scooter data
-        console.log("Getting data from Bird API.");
+        console.log("Getting data from Bird API");
         await bird.login();
         let scoots = await bird.getScootersNearby(ASU_LAT, ASU_LONG, RADIUS);
 
@@ -36,30 +35,36 @@ exports.handler = async (event, context) => {
 
 function putData(data, context) {
     return new Promise((resolve, reject) => {
-        console.log("Importing into DynamoDB.");
+        try {
+            console.log("Importing into DynamoDB");
 
-        let docClient = new AWS.DynamoDB.DocumentClient(),
-            timeString = Util.getTimeNowString(),
-            timeNowEpoch = Math.floor((new Date).getTime() / 1000);
+            // initialize client, generate recordID and dateCreated values
+            let docClient = new AWS.DynamoDB.DocumentClient(),
+                timeString = Util.getTimeNowString(),
+                timeNowEpoch = Math.floor((new Date).getTime() / 1000);
 
-        // attributes: primary key, item data, created, and ttl
-        let params = {
-            TableName: "Records",
-            Item: {
-                "recordID": timeString,
-                "record": data,
-                "dateCreated": timeNowEpoch,
-                "ttl": timeNowEpoch + MONTH_S
-            }
-        };
+            // table attributes: recordID (primary key), record (our item data), dateCreated, and ttl
+            let params = {
+                TableName: "Records",
+                Item: {
+                    "recordID": timeString,
+                    "record": data,
+                    "dateCreated": timeNowEpoch,
+                    "ttl": timeNowEpoch + MONTH_S
+                }
+            };
 
-        docClient.put(params, (err, data) => {
-            if (err) {
-                reject(console.error("Unable to add", params.Item.recordID, ". Error JSON:", JSON.stringify(err, null, 2)));
-            } else {
-                resolve(console.log("PutItem succeeded:", params.Item.recordID));
-            }
-        });
+            // put data
+            docClient.put(params, (err, data) => {
+                if (err) {
+                    reject(console.error("Unable to add", params.Item.recordID, ". Error JSON:", JSON.stringify(err, null, 2)));
+                } else {
+                    resolve(console.log("PutItem succeeded:", params.Item.recordID));
+                }
+            });
+        } catch (error) {
+            reject(error);
+        }
     });
 }
 

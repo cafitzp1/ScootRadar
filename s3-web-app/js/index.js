@@ -22,8 +22,8 @@ L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
 
 // this is the first function that gets called when our web page loads
 $(document).ready(function () {
-    $('#live-btn').click();
     initializeDayPicker();
+    $('#live-btn').click();
 });
 
 function centerMap() {
@@ -62,25 +62,25 @@ function datePicker_changeDate() {
     $('#live-btn').css('color', '#8e8e8e');
     $('#hour-select').css('display', '');
 
-    // get date in epoch format
-    let dateEpoch = $("#date-picker").val();
-    dateEpoch = new Date(dateEpoch).getTime() / 1000;
+    // get date from date-picker
+    let date = $("#date-picker").val();
 
     // query database
-    // $.ajax({
-    //     type: 'GET',
-    //     url: apiURL,
-    //     data: `date=${dateEpoch}`,
-    //     success: (response) => {
-    //         console.log('AJAX successful');
-    //         let data = JSON.parse(response);
-    //         let birds = data.birds;
-    //         addHeat(birds);
-    //     }, 
-    //     error: (error) => {
-    //         console.error(error);
-    //     } 
-    // });
+    $.ajax({
+        type: 'GET',
+        url: apiURL,
+        data: `date=${date}`,
+        success: (response) => {
+            console.log('AJAX successful');
+            console.log(response);
+            // let data = JSON.parse(response);
+            // let birds = data.birds;
+            // addHeat(birds);
+        }, 
+        error: (error) => {
+            console.error(error);
+        } 
+    });
 }
 
 async function liveBtn_click() {
@@ -140,26 +140,7 @@ function nextHour() {
 }
 
 function testBtn_click() {
-
-}
-
-function getStoredData(date) {
-    alert('getStoredData handler fired');
-
-    // $.ajax({
-    //     type: 'GET',
-    //     url: apiURL,
-    //     data: `date=${date}`,
-    //     success: (response) => {
-    //         console.log('AJAX successful');
-    //         let data = JSON.parse(response);
-    //         let birds = data.birds;
-    //         addHeat(birds);
-    //     }, 
-    //     error: (error) => {
-    //         console.error(error);
-    //     } 
-    // });
+    getStoredData($('#date-picker').val());
 }
 
 function addHeat(birds) {

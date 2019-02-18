@@ -1,0 +1,68 @@
+{
+    resource: '/scoot-radar',
+    path: '/scoot-radar',
+    httpMethod: 'GET',
+    headers: {
+        accept: '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'en-US,en;q=0.9',
+        Host: '9j600ki9gk.execute-api.us-west-2.amazonaws.com',
+        origin: 'null',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Mobile Safari/537.36',
+        'X-Amzn-Trace-Id': 'Root=1-5c6a44d5-66612a1573a2dfaa17d46ddc',
+        'X-Forwarded-For': '104.167.172.231',
+        'X-Forwarded-Port': '443',
+        'X-Forwarded-Proto': 'https'
+    },
+    multiValueHeaders: {
+        accept: ['*/*'],
+        'accept-encoding': ['gzip, deflate, br'],
+        'accept-language': ['en-US,en;q=0.9'],
+        Host: ['9j600ki9gk.execute-api.us-west-2.amazonaws.com'],
+        origin: ['null'],
+        'User-Agent': ['Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Mobile Safari/537.36'],
+        'X-Amzn-Trace-Id': ['Root=1-5c6a44d5-66612a1573a2dfaa17d46ddc'],
+        'X-Forwarded-For': ['104.167.172.231'],
+        'X-Forwarded-Port': ['443'],
+        'X-Forwarded-Proto': ['https']
+    },
+    queryStringParameters: {
+        date: '1550386800'
+    },
+    multiValueQueryStringParameters: {
+        date: ['1550386800']
+    },
+    pathParameters: null,
+    stageVariables: null,
+    requestContext: {
+        resourceId: '8se6yk',
+        resourcePath: '/scoot-radar',
+        httpMethod: 'GET',
+        extendedRequestId: 'VR-xWFsmvHcFubQ=',
+        requestTime: '18/Feb/2019:05:38:29 +0000',
+        path: '/default/scoot-radar',
+        accountId: '143018813791',
+        protocol: 'HTTP/1.1',
+        stage: 'default',
+        domainPrefix: '9j600ki9gk',
+        requestTimeEpoch: 1550468309436,
+        requestId: '6bb300a7-333f-11e9-952f-054c57d53620',
+        identity: {
+            cognitoIdentityPoolId: null,
+            accountId: null,
+            cognitoIdentityId: null,
+            caller: null,
+            sourceIp: '104.167.172.231',
+            accessKey: null,
+            cognitoAuthenticationType: null,
+            cognitoAuthenticationProvider: null,
+            userArn: null,
+            userAgent: 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Mobile Safari/537.36',
+            user: null
+        },
+        domainName: '9j600ki9gk.execute-api.us-west-2.amazonaws.com',
+        apiId: '9j600ki9gk'
+    },
+    body: null,
+    isBase64Encoded: false
+}
