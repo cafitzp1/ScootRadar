@@ -16,23 +16,27 @@ body {
 }
 
 #mapid {
-    height: 100vh;
+    height: 95vh;
 }
 
-#toggle-btn {
-    position: absolute;
-    display: -ms-inline-flexbox;
-    display: inline-flex;
-    vertical-align: middle;
-    z-index: 4000;
-    margin-left: 75px;
-    margin-top: 20px;
+#live-btn {
+    margin-left: 10px
+}   
+
+#live-btn:hover {
+    cursor: pointer !important;
 }
 
-#day-picker {
-    display: inline-flex;
-    position: absolute;
-    z-index: 4000;
-    margin-top: 21px;
-    margin-left: 250px;
+#nav-bar {
+    height: 5vh;
+}
+
+#date-picker {
+    width: 95px;
+    margin-left: 12px;
+}
+
+#hour-select {
+    width: 85px;
+    padding: 4px, 4px;
 }

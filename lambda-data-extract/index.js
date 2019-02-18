@@ -10,37 +10,44 @@ const REGION = "us-west-2";
 const ENDPOINT = "https://dynamodb.us-west-2.amazonaws.com";
 const MONTH_S = 2592000;
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
     try {
+
+        // configure DynamoDB endpoint
         AWS.config.update({
             region: REGION,
             endpoint: ENDPOINT
         });
 
+        // get scooter data
+        console.log("Getting data from Bird API.");
         await bird.login();
         let scoots = await bird.getScootersNearby(ASU_LAT, ASU_LONG, RADIUS);
 
         // send data to the db
-        putData(scoots);
+        await putData(scoots);
+        context.done();
+
     } catch (error) {
         console.error(error);
+        context.fail();
     }
 };
 
-function putData(birdData) {
+function putData(data, context) {
     return new Promise((resolve, reject) => {
         console.log("Importing into DynamoDB.");
 
         let docClient = new AWS.DynamoDB.DocumentClient(),
             timeString = Util.getTimeNowString(),
-            timeNowEpoch = (new Date).getTime();
+            timeNowEpoch = Math.floor((new Date).getTime() / 1000);
 
         // attributes: primary key, item data, created, and ttl
         let params = {
             TableName: "Records",
             Item: {
                 "recordID": timeString,
-                "record": birdData,
+                "record": data,
                 "dateCreated": timeNowEpoch,
                 "ttl": timeNowEpoch + MONTH_S
             }
