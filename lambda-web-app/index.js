@@ -8,6 +8,7 @@ const ASU_LONG = -111.9347;
 const RADIUS = 1;
 const REGION = "us-west-2";
 const ENDPOINT = "https://dynamodb.us-west-2.amazonaws.com";
+const TZ_OFFSET = 25200; // 7 hours in seconds
 
 // this is the method that begins our code
 exports.handler = async (event) => {
@@ -73,12 +74,15 @@ function getDataFromDB(date) {
             let day = new Date(Date.parse(date));
 
             // store beginning and end of the day (records before 0600 will be null)
-            let startEpoch = day.setHours(6, 0, 0, 0),
+            let startEpoch = day.setHours(0, 0, 0, 0),
                 endEpoch = day.setHours(23, 59, 59, 999);
 
             startEpoch = Math.floor(startEpoch / 1000), endEpoch = Math.floor(endEpoch / 1000);
 
-            // start and end will be GMT, this is fine as that's how it's stored in our Records table
+            // times needs to be shifted 7 hours over in seconds (GMT to AZ time);
+            startEpoch += TZ_OFFSET, endEpoch += TZ_OFFSET;
+
+            console.log('Getting records between ' + startEpoch + ' and ' + endEpoch); 
 
             // table attributes: recordID (primary key), record (our item data), dateCreated, and ttl
             // dateCreated gets stored in epoch, so we want all records between start and end

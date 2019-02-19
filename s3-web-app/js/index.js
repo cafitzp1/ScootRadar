@@ -17,13 +17,16 @@ const map = new L.Map("mapid", {
 // we need 'heat' to be available globally for when we remove it from the map
 let heat = L.heatLayer();
 
+// retrieved bird json data will also need to be available globally
+let storedData = [];
+
 // this adds the re-center button to the map
 L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
 
 // this is the first function that gets called when our web page loads
 $(document).ready(function () {
     initializeDayPicker();
-    $('#live-btn').click();
+    // $('#live-btn').click();
 });
 
 function centerMap() {
@@ -61,6 +64,7 @@ function datePicker_changeDate() {
     // fade the text of the live-btn and show the hour-select
     $('#live-btn').css('color', '#8e8e8e');
     $('#hour-select').css('display', '');
+    $('#date-load-indicator').css('display', '');
 
     // get date from date-picker
     let date = $("#date-picker").val();
@@ -71,17 +75,68 @@ function datePicker_changeDate() {
         url: apiURL,
         data: `date=${date}`,
         success: (response) => {
-            console.log('AJAX successful');
-            console.log(response);
-            // let data = JSON.parse(response);
-            // let birds = data.birds;
-            // addHeat(birds);
-        }, 
+            $('#date-load-indicator').css('display', 'none');
+            console.log('AJAX for stored data successful');
+
+            // store data; attributes: Count, Items, ScannedCount
+            let data = response;
+
+            // iterate and store items; attributes: recordID, record, dateCreated, ttl
+            data.Items.forEach((item) => {
+                storedData.push([item.recordID, item.record]);
+            })
+
+            console.log(`${storedData.length} items retrieved from DynamoDB`);
+
+            // display initial record
+            let time = $('#hour-select option:selected').val();
+            let datetime = `${date} ${time}`;
+
+            showHourlyData(datetime);
+        },
         error: (error) => {
+            $('#date-load-indicator').css('display', 'none');
             console.error(error);
-        } 
+        }
     });
 }
+
+function showHourlyData(datetime) {
+    // display the data set which correlates with the hour passed as a parameter
+
+    // get datetime as the formatted string, get hour to display
+    let datetimeString = Util.getTimeString(datetime);
+    let hourToDisplay = datetimeString.substring(0, 11) + "";
+    //console.log('Hour to match: ' + hourToDisplay);
+
+    // store data for the record time that matches the hour
+    let dataToDisplay = null,
+        birds = null;
+    for (let item of storedData) {
+        let recordHour = item[0].substring(0, 11) + "";
+        //console.log('- Hour: ' + recordHour);
+
+        // set dataToDisplay if record matches hour
+        if (recordHour == hourToDisplay) {
+            dataToDisplay = JSON.parse(item[1]);
+            birds = dataToDisplay.birds;
+            break;
+        }
+    }
+
+    // if a record was matched, populate
+    if (dataToDisplay) {
+        addHeat(birds);
+    } else {
+        console.log('No data to display for ' + datetimeString);
+    }
+}
+
+$('#test-btn').click(() => {
+    console.log('testBtn_click fired');
+
+    // test stuff ...
+});
 
 async function liveBtn_click() {
     console.log('liveBtn_click fired');
@@ -98,10 +153,9 @@ async function liveBtn_click() {
         url: apiURL,
         success: (response) => {
             $('.fa-refresh').removeClass('fa-spin');
-            console.log('AJAX successful');
+            console.log('AJAX for live data successful');
             let data = JSON.parse(response);
             let birds = data.birds;
-            map.removeLayer(heat);
             addHeat(birds);
         },
         error: (error) => {
@@ -112,13 +166,23 @@ async function liveBtn_click() {
 }
 
 // keydown event registration for the hour-select input
-$("#hour-select").keydown((e) => {
+$('#hour-select').keydown((e) => {
     if (e.keyCode == 37) { // left
         prevHour();
     } else if (e.keyCode == 39) { // right
         nextHour();
     }
+    $("#hour-select").trigger('change');
 });
+
+$('#hour-select').change(() => {
+    // get day, hour, pass to showHourlyData
+    let date = $("#date-picker").val();
+    let time = $('#hour-select option:selected').val();
+    let datetime = `${date} ${time}`;
+
+    showHourlyData(datetime);
+})
 
 function prevHour() {
     console.log('prevHour fired');
@@ -139,11 +203,10 @@ function nextHour() {
         .prop("selected", true);
 }
 
-function testBtn_click() {
-    getStoredData($('#date-picker').val());
-}
-
 function addHeat(birds) {
+    // remove existing layer
+    map.removeLayer(heat);
+
     // we need an array of coordinates for the heat map
     let birdLocations = [];
 
@@ -158,6 +221,4 @@ function addHeat(birds) {
         blur: 15,
         maxZoom: 17,
     }).addTo(map);
-
-    console.log(`data added for ${birds.length} birds`);
 }

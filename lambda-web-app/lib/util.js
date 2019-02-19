@@ -34,6 +34,42 @@ class Util {
     }
 
     /**
+     * Converts datetime into a string
+     * @param {datetime} datetime Datetime to convert
+     * @returns {string} Datetime in yyyymmddThhmm format; ex: 20190103T0830 = January 3, 2019 8:30am
+     */
+    static getTimeString(datetime) {
+
+        return (
+            new Date(datetime).toISOString()
+            .replace(/-/g, '')
+            .replace(/:/g, '')
+            .replace(/\..+/, '')
+        );
+    }
+
+    /**
+     * Converts 12 hour time into 24 hour format
+     * @param {datetime} time12h Time to convert
+     * @returns {datetime} Time in 24 hour format
+     */
+    static convertTime12to24(time12h) {
+        const [time, modifier] = time12h.split(' ');
+
+        let [hours, minutes] = time.split(':');
+
+        if (hours === '12') {
+            hours = '00';
+        }
+
+        if (modifier === 'PM') {
+            hours = parseInt(hours, 10) + 12;
+        }
+
+        return hours + ':' + minutes;
+    }
+
+    /**
      * Generates a response object for AWS Lambda
      * @param {*} status Status code
      * @param {*} content Data to send back in the response body

@@ -17,8 +17,10 @@
   <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
 
   <!-- bootstrap day picker plugin -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css" />
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css" />
 
   <title>Scoot Radar</title>
 </head>
@@ -32,8 +34,8 @@
       Scoot Radar
     </a>
     <!-- live button -->
-    <button class="btn-sm btn-dark" id="live-btn" onclick="liveBtn_click()">Live View &nbsp; <i class="fa fa-refresh"
-        aria-hidden="true"></i></button>
+    <button class="btn-sm btn-dark border-0" id="live-btn" onclick="liveBtn_click()">Live View &nbsp; <i
+        class="fa fa-refresh" aria-hidden="true"></i></button>
     <!-- date input -->
     <div class="bootstrap-iso">
       <input class="form-control-sm bg-dark text-light border-0" id="date-picker" name="date" placeholder="MM/DD/YYYY"
@@ -41,29 +43,42 @@
     </div>
     <!-- hour select -->
     <select id="hour-select" class="form-control-sm bg-dark text-light border-0" style="display: none;">
-      <option>6:00am</option>
-      <option>7:00am</option>
-      <option>8:00am</option>
-      <option>9:00am</option>
-      <option>10:00am</option>
-      <option>11:00am</option>
-      <option selected>12:00pm</option>
-      <option>1:00pm</option>
-      <option>2:00pm</option>
-      <option>3:00pm</option>
-      <option>4:00pm</option>
-      <option>5:00pm</option>
-      <option>6:00pm</option>
-      <option>7:00pm</option>
-      <option>8:00pm</option>
-      <option>9:00pm</option>
-      <option>10:00pm</option>
-      <option>11:00pm</option>
+      <option>12:00 AM</option>
+      <option>1:00 AM</option>
+      <option>2:00 AM</option>
+      <option>3:00 AM</option>
+      <option>4:00 AM</option>
+      <option>5:00 AM</option>
+      <option>6:00 AM</option>
+      <option>7:00 AM</option>
+      <option>8:00 AM</option>
+      <option>9:00 AM</option>
+      <option>10:00 AM</option>
+      <option>11:00 AM</option>
+      <option selected>12:00 PM</option>
+      <option>1:00 PM</option>
+      <option>2:00 PM</option>
+      <option>3:00 PM</option>
+      <option>4:00 PM</option>
+      <option>5:00 PM</option>
+      <option>6:00 PM</option>
+      <option>7:00 PM</option>
+      <option>8:00 PM</option>
+      <option>9:00 PM</option>
+      <option>10:00 PM</option>
+      <option>11:00 PM</option>
     </select>
+    <!-- day select load indicator -->
+    <div class="spinner-border spinner-border-sm text-light m-3" id="date-load-indicator" style="display: none;"
+      role="status">
+    </div>
+    <!-- test -->
+    <button class="btn-sm btn-dark" id="test-btn" style="display: none;">Test</button>
 
   </nav>
 
   <div id="mapid"></div>
+  <script src="./js/util.js"></script>
   <script src="./js/index.js"></script>
 </body>
 
