@@ -28,8 +28,8 @@ $(document).ready(() => {
     // add the re-center button to the map
     L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
 
-    // incoke live-btn click to populate live data
-    //$('#live-btn').click();
+    // invoke live-btn click to populate live data
+    $('#live-btn').click();
 });
 
 function centerMap() {
@@ -79,7 +79,7 @@ function datePicker_changeDate() {
         success: (response) => {
             // stop load indicator, notify
             $('#date-load-indicator').css('display', 'none');
-            console.log('AJAX for stored data successful');
+            console.log('AJAX successful');
 
             // store data; attributes: Count, Items, ScannedCount
             let data = response;
@@ -108,9 +108,9 @@ function datePicker_changeDate() {
     });
 }
 
-$('#date-picker').focus(() => {
-    // hide tooltip when focused 
-    $('#date-picker').tooltip('hide');
+$('.tool-tip').focus(() => {
+    // hide tooltip for elementa while focused 
+    $('.tool-tip:focus').tooltip('hide');
 });
 
 function showHourlyData(datetime) {
@@ -179,7 +179,7 @@ $('#live-btn').click(() => {
             // stop loading, notify
             $('.fa-refresh').removeClass('fa-spin');
             $('#notification-text').html(`<small>Last updated: ${localDateNow}</small>`);
-            console.log('AJAX for live data successful');
+            console.log('AJAX successful');
 
             // store data from response, add to map
             let data = JSON.parse(response);
@@ -214,11 +214,6 @@ $('#hour-select').change(() => {
     showHourlyData(datetime);
 });
 
-$('#hour-select').focus(() => {
-    // hide tooltip when focused
-    $('#hour-select').tooltip('hide');
-});
-
 function prevHour() {
     // select the previous hour in the hour select list
     $("#hour-select > option:selected")
@@ -226,7 +221,6 @@ function prevHour() {
         .prev()
         .prop("selected", true);
 }
-
 
 function nextHour() {
     // if on the last item in the list, return
