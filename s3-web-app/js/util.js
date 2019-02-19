@@ -5,7 +5,7 @@ class Util {
      * @returns {string} Datetime in yyyymmddThhmm format; ex: 20190103T0830 = January 3, 2019 8:30am
      */
     static getTimeNowString() {
-        let tzoffset = (new Date()).getTimezoneOffset() * 60000
+        let tzoffset = (new Date()).getTimezoneOffset() * 60000;
 
         return (
             new Date(Date.now() - tzoffset).toISOString()
