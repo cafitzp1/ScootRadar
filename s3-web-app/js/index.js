@@ -26,7 +26,7 @@ L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
 // this is the first function that gets called when our web page loads
 $(document).ready(function () {
     initializeDayPicker();
-    // $('#live-btn').click();
+    $('#live-btn').click();
 });
 
 function centerMap() {
