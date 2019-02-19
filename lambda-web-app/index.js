@@ -115,7 +115,7 @@ async function getDataFromDB(date) {
                     console.log("-", record.recordID + ": " + record.dateCreated);
                     items.push(record);
                 });
-
+                
             } while (lastEvaluatedKey != null);
 
             // construct new data object

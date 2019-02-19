@@ -32,19 +32,19 @@
       Scoot Radar
     </a>
     <!-- live button -->
-    <button class="btn-sm btn-dark border-0" id="live-btn" data-toggle="tooltip" data-placement="bottom" title="Get live bird data"
+    <button class="btn-sm btn-dark border-0 tool-tip" id="live-btn" data-toggle="tooltip" data-placement="bottom" title="Get live bird data"
       data-delay="500">
       Live View &nbsp; <i class="fa fa-refresh" aria-hidden="true"></i>
     </button>
     <!-- date input -->
     <div class="bootstrap-iso">
-      <input class="form-control-sm bg-dark text-light border-0" id="date-picker" name="date" placeholder="MM/DD/YYYY"
+      <input class="form-control-sm bg-dark text-light border-0 tool-tip" id="date-picker" name="date" placeholder="MM/DD/YYYY"
         type="text" data-toggle="tooltip"
         data-placement="bottom" title="Select a date" data-delay="500"/>
     </div>
     <!-- hour select -->
-    <select id="hour-select" class="form-control-sm bg-dark text-light border-0" style="visibility: hidden" data-toggle="tooltip"
-      data-placement="bottom" title="Use left and right arrow keys when focused to quickly switch hours" data-delay="500">
+    <select id="hour-select" class="form-control-sm bg-dark text-light border-0 tool-tip" style="visibility: hidden" data-toggle="tooltip"
+      data-placement="bottom" title="Use left and right arrow keys while focused to quickly switch hours" data-delay="500">
       <option>12:00 AM</option>
       <option>1:00 AM</option>
       <option>2:00 AM</option>
@@ -89,16 +89,3 @@
 </body>
 
 </html>
-
-<!-- BOOTSTRAP COMPONENT DOCUMENTATION -->
-<!-- https://getbootstrap.com/docs/4.3/components/alerts/ -->
-
-<!-- DAY PICKER TUTORIAL -->
-<!-- https://formden.com/blog/date-picker -->
-
-<!-- 
-  TODO:
-  - add label to indicate left/right arrow functionality
-  - add last updated label
-  - clear data for no record found -> display "no data :(" label
--->
