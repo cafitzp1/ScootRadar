@@ -14,19 +14,22 @@ const map = new L.Map("mapid", {
     maxZoom: ZOOM + 2
 }).addLayer(new L.TileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"));
 
-// we need 'heat' to be available globally for when we remove it from the map
+// variables needed globally
 let heat = L.heatLayer();
-
-// retrieved bird json data will also need to be available globally
 let storedData = [];
 
-// this adds the re-center button to the map
-L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
+$(document).ready(() => {
+    // initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip()
 
-// this is the first function that gets called when our web page loads
-$(document).ready(function () {
+    // initialize the date-picker
     initializeDayPicker();
-    $('#live-btn').click();
+
+    // add the re-center button to the map
+    L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
+
+    // incoke live-btn click to populate live data
+    //$('#live-btn').click();
 });
 
 function centerMap() {
@@ -34,12 +37,11 @@ function centerMap() {
 }
 
 function initializeDayPicker() {
-    console.log('initializeDayPicker fired')
 
     // set the endDate (today) as the last selectable option, and startDate as first
     let endDate = new Date();
     let startDate = new Date();
-    startDate.setDate(startDate.getDate() - 1);
+    startDate.setDate(startDate.getDate() - 30);
 
     // set datepicker configuration options
     let date_input = $('input[name="date"]');
@@ -59,12 +61,12 @@ function initializeDayPicker() {
 }
 
 function datePicker_changeDate() {
-    console.log('datePicker_changeDate fired');
 
     // fade the text of the live-btn and show the hour-select
     $('#live-btn').css('color', '#8e8e8e');
-    $('#hour-select').css('display', '');
+    $('#hour-select').css('visibility', '');
     $('#date-load-indicator').css('display', '');
+    $('#notification-text').text("");
 
     // get date from date-picker
     let date = $("#date-picker").val();
@@ -75,24 +77,29 @@ function datePicker_changeDate() {
         url: apiURL,
         data: `date=${date}`,
         success: (response) => {
+            // stop load indicator, notify
             $('#date-load-indicator').css('display', 'none');
             console.log('AJAX for stored data successful');
 
             // store data; attributes: Count, Items, ScannedCount
             let data = response;
 
+            console.log(`${data.Count} items retrieved from DynamoDB`);
+            console.log(data);
+
             // iterate and store items; attributes: recordID, record, dateCreated, ttl
+            storedData = [];
             data.Items.forEach((item) => {
                 storedData.push([item.recordID, item.record]);
             })
-
-            console.log(`${storedData.length} items retrieved from DynamoDB`);
 
             // display initial record
             let time = $('#hour-select option:selected').val();
             let datetime = `${date} ${time}`;
 
+            // set hourly data for whatever is selected and focus select input
             showHourlyData(datetime);
+            $('#hour-select').focus();
         },
         error: (error) => {
             $('#date-load-indicator').css('display', 'none');
@@ -100,6 +107,11 @@ function datePicker_changeDate() {
         }
     });
 }
+
+$('#date-picker').focus(() => {
+    // hide tooltip when focused 
+    $('#date-picker').tooltip('hide');
+});
 
 function showHourlyData(datetime) {
     // display the data set which correlates with the hour passed as a parameter
@@ -124,11 +136,20 @@ function showHourlyData(datetime) {
         }
     }
 
-    // if a record was matched, populate
-    if (dataToDisplay) {
-        addHeat(birds);
-    } else {
-        console.log('No data to display for ' + datetimeString);
+    // if a record was matched, populate as long as there are birds
+    if (birds) {
+        if (birds.length == 0) {
+            // notify there are no birds to display
+            $('#notification-text').html("<small>No birds to display</small>");
+        } else {
+            addHeat(birds);
+            $('#notification-text').text("");
+            $('#notification-text').html(`<small>Displaying ${birds.length} birds</small>`);
+        }
+    }
+    // no matched record, just notify
+    else {
+        $('#notification-text').html("<small>No data :(</small>");
     }
 }
 
@@ -138,22 +159,29 @@ $('#test-btn').click(() => {
     // test stuff ...
 });
 
-async function liveBtn_click() {
-    console.log('liveBtn_click fired');
+$('#live-btn').click(() => {
 
     // set color of live-btn back to normal, clear date-picker, hide hour-select
     $('#live-btn').css('color', '#ffffff');
     $('#date-picker').val('').datepicker('update');
-    $('#hour-select').css('display', 'none');
+    $('#hour-select').css('visibility', 'hidden');
     $('.fa-refresh').addClass('fa-spin');
+    $('#notification-text').text("");
 
     // get live data
     $.ajax({
         type: 'GET',
         url: apiURL,
         success: (response) => {
+            // get date for now
+            let localDateNow = (new Date(Date.now())).toLocaleTimeString();
+
+            // stop loading, notify
             $('.fa-refresh').removeClass('fa-spin');
+            $('#notification-text').html(`<small>Last updated: ${localDateNow}</small>`);
             console.log('AJAX for live data successful');
+
+            // store data from response, add to map
             let data = JSON.parse(response);
             let birds = data.birds;
             addHeat(birds);
@@ -163,13 +191,15 @@ async function liveBtn_click() {
             console.error(error);
         }
     });
-}
+});
 
-// keydown event registration for the hour-select input
 $('#hour-select').keydown((e) => {
-    if (e.keyCode == 37) { // left
+    // if left key is pressed
+    if (e.keyCode == 37) {
         prevHour();
-    } else if (e.keyCode == 39) { // right
+    }
+    // if right key is pressed
+    else if (e.keyCode == 39) {
         nextHour();
     }
     $("#hour-select").trigger('change');
@@ -182,11 +212,15 @@ $('#hour-select').change(() => {
     let datetime = `${date} ${time}`;
 
     showHourlyData(datetime);
-})
+});
+
+$('#hour-select').focus(() => {
+    // hide tooltip when focused
+    $('#hour-select').tooltip('hide');
+});
 
 function prevHour() {
-    console.log('prevHour fired');
-
+    // select the previous hour in the hour select list
     $("#hour-select > option:selected")
         .prop("selected", false)
         .prev()
@@ -195,8 +229,12 @@ function prevHour() {
 
 
 function nextHour() {
-    console.log('nextHour fired');
+    // if on the last item in the list, return
+    if ($("#hour-select option:last").is(":selected")) {
+        return;
+    }
 
+    // select the next hour in the hour select list
     $("#hour-select > option:selected")
         .prop("selected", false)
         .next()
@@ -205,7 +243,7 @@ function nextHour() {
 
 function addHeat(birds) {
     // remove existing layer
-    map.removeLayer(heat);
+    removeHeat();
 
     // we need an array of coordinates for the heat map
     let birdLocations = [];
@@ -221,4 +259,8 @@ function addHeat(birds) {
         blur: 15,
         maxZoom: 17,
     }).addTo(map);
+}
+
+function removeHeat() {
+    map.removeLayer(heat);
 }

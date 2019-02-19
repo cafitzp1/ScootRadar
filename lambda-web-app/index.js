@@ -58,8 +58,8 @@ async function getLiveData() {
     });
 }
 
-function getDataFromDB(date) {
-    return new Promise((resolve, reject) => {
+async function getDataFromDB(date) {
+    return new Promise(async (resolve, reject) => {
         try {
             console.log('Querying DynamoDB');
 
@@ -74,56 +74,85 @@ function getDataFromDB(date) {
             let day = new Date(Date.parse(date));
 
             // store beginning and end of the day (records before 0600 will be null)
-            let startEpoch = day.setHours(0, 0, 0, 0),
-                endEpoch = day.setHours(23, 59, 59, 999);
-
-            startEpoch = Math.floor(startEpoch / 1000), endEpoch = Math.floor(endEpoch / 1000);
+            let startEpoch = Math.floor(day.setHours(0, 0, 0, 0) / 1000),
+                endEpoch = Math.floor(day.setHours(23, 59, 59, 999) / 1000);
 
             // times needs to be shifted 7 hours over in seconds (GMT to AZ time);
             startEpoch += TZ_OFFSET, endEpoch += TZ_OFFSET;
-
-            console.log('Getting records between ' + startEpoch + ' and ' + endEpoch); 
+            console.log('Getting records between ' + startEpoch + ' and ' + endEpoch);
 
             // table attributes: recordID (primary key), record (our item data), dateCreated, and ttl
             // dateCreated gets stored in epoch, so we want all records between start and end
-            let params = {
-                TableName: "Records",
-                FilterExpression: "#dateCreated between :fromEpoch and :toEpoch",
-                ExpressionAttributeNames: {
-                    '#dateCreated': 'dateCreated',
-                },
-                ExpressionAttributeValues: {
-                    ':fromEpoch': startEpoch,
-                    ':toEpoch': endEpoch,
-                }
-            };
+            // if scan is too large, LastEvaluatedKey will hold data for last item retreived
+            let lastEvaluatedKey = null;
+            let items = [];
+            let count = 0;
+            let scannedCount = 0;
 
-            // query
-            docClient.scan(params, (err, data) => {
-                if (err) {
-                    console.log("Unable to query. Error:", JSON.stringify(err, null, 2));
+            // loop while there is a lastEvaluatedKey
+            do {
+                let params = {
+                    TableName: "Records",
+                    FilterExpression: "#dateCreated between :fromEpoch and :toEpoch",
+                    ExpressionAttributeNames: {
+                        '#dateCreated': 'dateCreated',
+                    },
+                    ExpressionAttributeValues: {
+                        ':fromEpoch': startEpoch,
+                        ':toEpoch': endEpoch,
+                    },
+                    ExclusiveStartKey: lastEvaluatedKey
+                };
 
-                    reject(response);
-                } else {
-                    console.log("Query succeeded");
-                    data.Items.forEach((record) => {
-                        console.log(" -", record.recordID + ": " + record.dateCreated);
-                    });
+                // get data from db scan method
+                let data = await dynamoDBScan(docClient, params);
 
-                    let response = Util.generateResponse(200, data)
-                    resolve(response);
-                }
-            });
+                // set data for local variables
+                count += data.Count;
+                scannedCount += data.ScannedCount;
+                lastEvaluatedKey = data.LastEvaluatedKey;
+                data.Items.forEach((record) => {
+                    console.log("-", record.recordID + ": " + record.dateCreated);
+                    items.push(record);
+                });
+
+            } while (lastEvaluatedKey != null);
+
+            // construct new data object
+            let data = {
+                Count: count,
+                Items: items,
+                ScannedCount: scannedCount
+            }
+
+            // resolve
+            let response = Util.generateResponse(200, data);
+            resolve(response);
         } catch (error) {
             reject(error);
         }
     });
 }
 
+function dynamoDBScan(docClient, params) {
+    return new Promise((resolve, reject) => {
+
+        docClient.scan(params, (err, data) => {
+            if (err) {
+                console.log("Unable to query. Error:", JSON.stringify(err, null, 2));
+                reject(response);
+            } else {
+                console.log("Query succeeded");
+                resolve(data);
+            }
+        });
+    });
+}
+
 // ----- FOR TESTING ----- //
 
 async function test() {
-    let data = await getDataFromDB('2019-02-18T06:34:03.492+0000');
+    let data = await getDataFromDB("2019-02-18T08:09:32+00:00");
     console.log(data);
 }
 

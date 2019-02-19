@@ -39,4 +39,5 @@ body {
 #hour-select {
     width: 100px;
     padding: 4px, 4px;
+    margin-top: 1px;
 }
