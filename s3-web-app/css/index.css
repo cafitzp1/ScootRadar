@@ -32,12 +32,12 @@ body {
 }
 
 #date-picker {
-    width: 95px;
+    width: 100px;
     margin-left: 12px;
 }
 
 #hour-select {
-    width: 85px;
+    width: 100px;
     padding: 4px, 4px;
     margin-top: 1px;
 }
