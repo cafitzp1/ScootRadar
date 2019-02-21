@@ -21,7 +21,7 @@ const map = new L.Map("mapid", {
     center: [ASU_LONG, ASU_LAT],
     zoom: ZOOM,
     maxZoom: ZOOM + 2
-}).addLayer(new L.TileLayer(basemaps.waterColor));
+}).addLayer(new L.TileLayer(basemaps.darkMatter));
 
 // variables needed globally
 let heat = L.heatLayer();
