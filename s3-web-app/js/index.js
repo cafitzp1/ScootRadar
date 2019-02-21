@@ -7,12 +7,21 @@ const ZOOM = 16;
 // this is the URL we need for communicating with our back end
 const apiURL = "https://9j600ki9gk.execute-api.us-west-2.amazonaws.com/default/scoot-radar";
 
+const basemaps = {
+    positron: "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+    darkMatter: "http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+    voyager: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+    toner: "http://{s}.sm.mapstack.stamen.com/(toner-lite,$fff[difference],$fff[@23],$fff[hsl-saturation@20])/{z}/{x}/{y}.png",
+    terrain: "http://{s}.sm.mapstack.stamen.com/(terrain)/{z}/{x}/{y}.png",
+    waterColor: "http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg"
+};
+
 // this is the map object initialization
 const map = new L.Map("mapid", {
     center: [ASU_LONG, ASU_LAT],
     zoom: ZOOM,
     maxZoom: ZOOM + 2
-}).addLayer(new L.TileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"));
+}).addLayer(new L.TileLayer(basemaps.waterColor));
 
 // variables needed globally
 let heat = L.heatLayer();
