@@ -18,7 +18,6 @@ Desktop.ini
 *.log
 *.gz
 
-
 # Coveralls
 coverage
 
@@ -28,3 +27,6 @@ benchmarks/graphs
 # Data
 **/appSettings.js
 **/config.js
+
+# AWS
+**/index.zip
