@@ -9,10 +9,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
-  <link rel="stylesheet" href="./css/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="./css/index.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
   <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
@@ -35,19 +35,17 @@
       Scoot Radar
     </a>
     <!-- live button -->
-    <button class="btn-sm btn-dark border-0 tool-tip m-3" id="live-btn" data-toggle="tooltip" data-placement="bottom"
-      title="Get live bird data" data-delay="500">
+    <button class="btn-sm btn-dark border-0 tool-tip m-3" id="live-btn" data-toggle="tooltip" title="Get live bird data">
       Live View &nbsp; <i class="fa fa-refresh" aria-hidden="true"></i>
     </button>
     <!-- date input -->
-    <div class="bootstrap-iso">
+    <div class="bootstrap-iso" style="z-index: 4000 !important;">
       <input class="form-control-sm bg-dark text-light border-0 tool-tip" id="date-picker" name="date" placeholder="MM/DD/YYYY"
-        type="text" data-toggle="tooltip" data-placement="bottom" title="Select a date" data-delay="500" />
+        type="text" data-toggle="tooltip" title="Select a date" />
     </div>
     <!-- hour select -->
-    <select id="hour-select" class="form-control-sm bg-dark text-light border-0 tool-tip" style="visibility: hidden"
-      data-toggle="tooltip" data-placement="bottom" title="Use left and right arrow keys while focused to quickly switch hours"
-      data-delay="500">
+    <select id="hour-select" class="form-control-sm bg-dark text-light border-0 tool-tip" style="visibility: hidden;"
+      data-toggle="tooltip" title="Quickly switch hours with left and right arrow keys">
       <option>12:00 AM</option>
       <option>1:00 AM</option>
       <option>2:00 AM</option>
@@ -77,7 +75,7 @@
     <div class="spinner-border spinner-border-sm text-light m-3" id="date-load-indicator" style="display: none" role="status">
     </div>
     <!-- notification text -->
-    <span class="navbar-text-sm m-4 text-secondary" id="notification-text">
+    <span class="navbar-text-sm m-4 text-secondary tool-tip" id="notification-text" data-toggle="tooltip" title="">
     </span>
     <!-- theme dropdown -->
     <div id="theme-dropdown" class="dropdown ml-auto">
@@ -107,8 +105,7 @@
     </div>
     <!-- visualization dropdown -->
     <div id="visualization-dropdown" class="dropdown ml-2">
-      <button class="btn-sm btn-dark border-0 dropdown-toggle" id="visualization-dropdown-btn"
-        data-toggle="dropdown">
+      <button class="btn-sm btn-dark border-0 dropdown-toggle" id="visualization-dropdown-btn" data-toggle="dropdown">
         Overlay
       </button>
       <div class="nav-dropdown dropdown-menu dropdown-menu-right pl-3" aria-labelledby="visualization-dropdown-btn">

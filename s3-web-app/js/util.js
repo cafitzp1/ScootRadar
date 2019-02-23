@@ -2,7 +2,7 @@ class Util {
 
     /**
      * Gets the current datetime and returns it as a string
-     * @returns {string} Datetime in yyyymmddThhmm format; ex: 20190103T0830 = January 3, 2019 8:30am
+     * @returns {string} Datetime in yyyymmddThhmmss format; ex: 20190103T083000 = January 3, 2019 8:30am
      */
     static getTimeNowString() {
         let tzoffset = (new Date()).getTimezoneOffset() * 60000;
@@ -18,7 +18,7 @@ class Util {
     /**
      * Converts epoch time format (unix time stamp) into datetime as a string
      * @param {*} epoch Time since the epoch (unix time stamp)
-     * @returns {string} Datetime in yyyymmddThhmm format; ex: 20190103T0830 = January 3, 2019 8:30am
+     * @returns {string} Datetime in yyyymmddThhmmss format; ex: 20190103T083000 = January 3, 2019 8:30am
      */
     static epochToLocalTime(epoch) {
         let utcSeconds = epoch;
@@ -36,7 +36,7 @@ class Util {
     /**
      * Converts datetime into a string
      * @param {datetime} datetime Datetime to convert
-     * @returns {string} Datetime in yyyymmddThhmm format; ex: 20190103T0830 = January 3, 2019 8:30am
+     * @returns {string} Datetime in yyyymmddThhmmss format; ex: 20190103T083000 = January 3, 2019 8:30am
      */
     static getTimeString(datetime) {
 
@@ -70,21 +70,22 @@ class Util {
     }
 
     /**
-     * Generates a response object for AWS Lambda
-     * @param {*} status Status code
-     * @param {*} content Data to send back in the response body
+     * Converts the yyyymmddThhmmss back into a Date object
+     * @param {string} timeStampID 
+     * @returns {Date} Date object
      */
-    static generateResponse(status, content) {
-        return new Promise((resolve, reject) => {
-            let response = {
-                statusCode: status,
-                headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Credentials": true
-                },
-                body: JSON.stringify(content),
-            };
-            resolve(response);
-        });
+    static convertTimeStampIDToDate(timeStampID) {
+        let dateToReturn = new Date(),
+            year = timeStampID.substr(0, 4),
+            month = timeStampID.substr(4, 2),
+            day = timeStampID.substr(6, 2),
+            hours = timeStampID.substr(9, 2),
+            minutes = timeStampID.substr(11, 2),
+            seconds = timeStampID.substr(13, 2);
+        
+        dateToReturn.setUTCFullYear(year, month - 1, day);
+        dateToReturn.setUTCHours(hours, minutes, seconds);
+
+        return dateToReturn;
     }
 }

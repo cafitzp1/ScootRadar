@@ -42,7 +42,11 @@ let activeOverlay = "";
 
 $(document).ready(() => {
     // initialize tooltips
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: 'hover',
+        placement: 'bottom',
+        delay: 500,
+    })
 
     // initialize the date-picker
     initializeDayPicker();
@@ -51,8 +55,8 @@ $(document).ready(() => {
     L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
 
     // select starting basemap and overlay
-    $('#voyager-radio').click();
-    $('#clusters-radio').click();
+    $('#dark-matter-radio').click();
+    $('#heatmap-radio').click();
 
     // invoke live-btn click to populate live data
     $('#live-btn').click();
@@ -133,16 +137,18 @@ const datePicker_changeDate = () => {
     });
 };
 
-const showHourlyData = (datetime) => {
+const showHourlyData = (dateTime) => {
     // display the data set which correlates with the hour passed as a parameter
 
     // get datetime as the formatted string, get hour to display
-    let datetimeString = Util.getTimeString(datetime);
-    let hourToDisplay = datetimeString.substring(0, 11) + "";
+    let dateTimeString = Util.getTimeString(dateTime);
+    let hourToDisplay = dateTimeString.substring(0, 11) + "";
     //console.log('Hour to match: ' + hourToDisplay);
 
     // store data for the record time that matches the hour
-    let dataToDisplay = null,
+    let recordStoredDateTimeString = null,
+        recordDate = null,
+        dataToDisplay = null,
         birds = null;
 
     for (let item of storedData) {
@@ -151,6 +157,8 @@ const showHourlyData = (datetime) => {
 
         // set dataToDisplay if record matches hour
         if (recordHour == hourToDisplay) {
+            recordStoredDateTimeString = item[0];
+            recordDate = Util.convertTimeStampIDToDate(recordStoredDateTimeString);
             dataToDisplay = JSON.parse(item[1]);
             birds = dataToDisplay.birds;
             break;
@@ -162,16 +170,19 @@ const showHourlyData = (datetime) => {
         if (birds.length == 0) {
             // notify there are no birds to display
             $('#notification-text').html("<small>No birds to display</small>");
+            $('#notification-text').attr("data-original-title", "The bird API turns off for a few hours every night, also occasionally during inclement weather");
         } else {
             currentData = birds;
             addOverlay(birds);
             $('#notification-text').text("");
             $('#notification-text').html(`<small>Displaying ${birds.length} birds</small>`);
+            $('#notification-text').attr("data-original-title", `Record stored ${recordDate.toLocaleString()}`);
         }
     }
     // no matched record, just notify
     else {
-        $('#notification-text').html("<small>No data :(</small>");
+        $('#notification-text').html("<small>No data recorded for that period :(</small>");
+        $('#notification-text').attr("data-original-title", "There is no record in the database for that time period. Maybe try another?");
     }
 };
 
@@ -227,7 +238,7 @@ const returnBirdData = (response) => {
     // logo icon
     let logoIcon = L.icon({
         iconUrl: './assets/bird.png',
-        iconSize: [18, 18],
+        iconSize: [22, 22],
     });
 
     for (let item of response) {
@@ -279,9 +290,7 @@ const addHeatOverlay = (heatCircles) => {
     let prevLayer = overlays.heatOverlay;
     // generate layer
     overlays.heatOverlay = new L.heatLayer(heatCircles, {
-        radius: 20,
-        blur: 15,
-        maxZoom: 17
+        //gradient: {0.4: 'blue', 0.7: 'lime', 1: 'red'}
     });
     // remove existing, add new
     if (map.hasLayer(prevLayer)) {
@@ -355,6 +364,7 @@ $('#live-btn').click(() => {
             // stop loading, notify
             $('.fa-refresh').removeClass('fa-spin');
             $('#notification-text').html(`<small>Last updated: ${localDateNow}</small>`);
+            $('#notification-text').attr("data-original-title", "");
 
             // store data from response, add to map
             let data = JSON.parse(response);
