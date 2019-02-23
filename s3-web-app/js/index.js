@@ -243,13 +243,13 @@ const returnBirdData = (response) => {
         // for the clusters
         let marker = L.marker([item.location.latitude, item.location.longitude]);
         let battery = item.battery_level;
-        if (battery > 90) {
+        if (battery >= 90) {
             marker.bindPopup(`<i class="fa fa-battery-full" aria-hidden="true"></i> ${item.battery_level}`);
-        } else if (battery > 65) {
+        } else if (battery >= 65) {
             marker.bindPopup(`<i class="fa fa-battery-three-quarters" aria-hidden="true"></i> ${item.battery_level}`);
-        } else if (battery > 40) {
+        } else if (battery >= 40) {
             marker.bindPopup(`<i class="fa fa-battery-half" aria-hidden="true"></i> ${item.battery_level}`);
-        } else if (battery > 15) {
+        } else if (battery >= 15) {
             marker.bindPopup(`<i class="fa fa-battery-quarter" aria-hidden="true"></i> ${item.battery_level}`);
         } else {
             marker.bindPopup(`<i class="fa fa-battery-empty" aria-hidden="true"></i> ${item.battery_level}`);
