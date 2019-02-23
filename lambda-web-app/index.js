@@ -1,128 +1,161 @@
-"use strict";
+const AWS = require("aws-sdk");
+const Util = require('./lib/util');
+const Bird = require('./lib/bird');
+const bird = new Bird();
 
-const faker = require('faker');
-const request = require('request');
-
-const ASU_LAT = 33.4166061;
-const ASU_LONG = -111.9363706;
+const ASU_LAT = 33.4187;
+const ASU_LONG = -111.9347;
 const RADIUS = 1;
+const REGION = "us-west-2";
+const ENDPOINT = "https://dynamodb.us-west-2.amazonaws.com";
+const TZ_OFFSET = 25200; // 7 hours in seconds
 
-const headers = {
-    'Device-id': faker.random.uuid(),
-    'Platform': 'ios',
-    'App-Version': '3.0.5',
-    'Authorization': ''
-}
-
+// this is the method that begins our code
 exports.handler = async (event) => {
     try {
-        // async/await means methods will invoke in sequence
+        console.log(event);
 
-        // login has to occur first, we get authentication token we need for next step
-        await login();
+        // if there are parameters, we need to check for a date
+        if (event != null && event.queryStringParameters) {
+            // if there is a date, we want to access the database
+            if (event.queryStringParameters.date) {
+                let date = event.queryStringParameters.date;
+                let response = await getDataFromDB(date);
+                return response;
+            }
+        } else {
+            // if no date is passed, we get live data as normal
+            let response = await getLiveData();
+            return response;
+        }
 
-        // with authentication token, we can request scooters nearby
-        let scoots = await getScootersNearby();
-
-        // now with the returned scooter data, we format a response for the API
-        let response = await generateResponse(200, scoots);
-
-        // response returns scooter data to the web page, scoot data in response.body
-        return response;
     } catch (error) {
+        let response = Util.generateResponse(400, error);
         console.error(error);
+
+        return response;
     }
 };
 
-function setAccessToken(accessToken) {
-    headers['Authorization'] = ''
-    delete headers['Authorization']
+async function getLiveData() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log('Getting live data');
 
-    headers['Authorization'] = `Bird ${accessToken}`
+            // login has to occur first, we get authentication token we need for next step
+            await bird.login();
+            // with authentication token, we can request scooters nearby
+            let scoots = await bird.getScootersNearby(ASU_LAT, ASU_LONG, RADIUS);
+            // now with the returned scooter data, we format a response for our API
+            let response = Util.generateResponse(200, scoots);
+            // response object returns scooter data to the web page
+
+            console.log('Get live data succeeded');
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
 }
 
-function login(email = faker.internet.email()) {
-    return new Promise(function (resolve, reject) {
-        request.post({
-            url: 'https://api.bird.co/user/login',
-            json: {
-                email: email
-            },
-            headers: {
-                'Device-id': `${headers["Device-id"]}`,
-                'Platform': `${headers["Platform"]}`,
-                'Content-type': 'application/json'
-            },
-            method: 'POST'
-        }, (error, response, body) => {
-            if (!error && response.statusCode == 200) {
-                resolve(setAccessToken(response.body.token));
+async function getDataFromDB(date) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log('Querying DynamoDB');
+
+            // configure DynamoDB endpoint
+            AWS.config.update({
+                region: REGION,
+                endpoint: ENDPOINT
+            });
+
+            // initialize client and store day from date paramater
+            let docClient = new AWS.DynamoDB.DocumentClient();
+            let day = new Date(Date.parse(date));
+
+            // store beginning and end of the day (records before 0600 will be null)
+            let startEpoch = Math.floor(day.setHours(0, 0, 0, 0) / 1000),
+                endEpoch = Math.floor(day.setHours(23, 59, 59, 999) / 1000);
+
+            // times needs to be shifted 7 hours over in seconds (GMT to AZ time);
+            startEpoch += TZ_OFFSET, endEpoch += TZ_OFFSET;
+            console.log('Getting records between ' + startEpoch + ' and ' + endEpoch);
+
+            // table attributes: recordID (primary key), record (our item data), dateCreated, and ttl
+            // dateCreated gets stored in epoch, so we want all records between start and end
+            // if scan is too large, LastEvaluatedKey will hold data for last item retreived
+            let lastEvaluatedKey = null;
+            let items = [];
+            let count = 0;
+            let scannedCount = 0;
+
+            // loop while there is a lastEvaluatedKey
+            do {
+                let params = {
+                    TableName: "Records",
+                    FilterExpression: "#dateCreated between :fromEpoch and :toEpoch",
+                    ExpressionAttributeNames: {
+                        '#dateCreated': 'dateCreated',
+                    },
+                    ExpressionAttributeValues: {
+                        ':fromEpoch': startEpoch,
+                        ':toEpoch': endEpoch,
+                    },
+                    ExclusiveStartKey: lastEvaluatedKey
+                };
+
+                // get data from db scan method
+                let data = await dynamoDBScan(docClient, params);
+
+                // set data for local variables
+                count += data.Count;
+                scannedCount += data.ScannedCount;
+                lastEvaluatedKey = data.LastEvaluatedKey;
+                data.Items.forEach((record) => {
+                    console.log("-", record.recordID + ": " + record.dateCreated);
+                    items.push(record);
+                });
+                
+            } while (lastEvaluatedKey != null);
+
+            // construct new data object
+            let data = {
+                Count: count,
+                Items: items,
+                ScannedCount: scannedCount
+            }
+
+            // resolve
+            let response = Util.generateResponse(200, data);
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+function dynamoDBScan(docClient, params) {
+    return new Promise((resolve, reject) => {
+
+        docClient.scan(params, (err, data) => {
+            if (err) {
+                console.log("Unable to query. Error:", JSON.stringify(err, null, 2));
+                reject(response);
             } else {
-                reject(error);
+                console.log("Query succeeded");
+                resolve(data);
             }
         });
     });
 }
 
-function getScootersNearby(latitude = ASU_LAT, longitude = ASU_LONG, radius = RADIUS) {
-    return new Promise(function (resolve, reject) {
-        let options = {
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Authorization': headers['Authorization'],
-                'Device-id': headers["Device-id"],
-                'Platform': headers["Platform"],
-                'App-Version': headers["App-Version"],
-                'Location': `{"latitude":${latitude},"longitude":${longitude},"altitude":500,"accuracy":100,"speed":-1,"heading":-1}`
-            },
-            method: 'GET',
-            url: `https://api.bird.co/bird/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}`,
-            params: {
-                latitude: latitude,
-                longitude: longitude,
-                radius: radius
-            },
-            responseType: 'json'
-        };
-
-        request(options, (error, response, body) => {
-            if (!error && response.statusCode == 200) {
-                resolve(body);
-            } else {
-                reject(error);
-            }
-        });
-    });
-}
-
-function generateResponse(status, content) {
-    return new Promise(function (resolve, reject) {
-        let response = {
-            statusCode: status,
-            headers: {
-                "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-                "Access-Control-Allow-Credentials": true // Required for cookies, authorization headers with HTTPS 
-            },
-            body: JSON.stringify(content),
-        };
-
-        resolve(response);
-    });
-}
-
-// for testing purposes... uncomment the test method call and run node index.js
+// ----- FOR TESTING ----- //
 
 async function test() {
-    try {
-        await login();
-
-        let scoots = await getScootersNearby();
-        let response = await generateResponse(200, scoots);
-
-        console.log(response);
-    } catch (error) {
-        console.error(error);
-    }
+    let data = await getDataFromDB("2019-02-18T08:09:32+00:00");
+    console.log(data);
 }
 
-// test();
+if (process.env.config == 'debug') {
+    test();
+}

@@ -7,8 +7,16 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/lambda-web-app/index.js"
+            "name": "lambda-web-app (index.js)",
+            "program": "${workspaceFolder}/lambda-web-app/index.js",
+            "env": {"config": "debug"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "lambda-data-extract (index.js)",
+            "program": "${workspaceFolder}/lambda-data-extract/index.js",
+            "env": {"config": "debug"}
         }
     ]
 }

@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "node-bird": "^1.1.0"
+    "aws-sdk": "^2.404.0",
+    "faker": "^4.1.0",
+    "request": "^2.88.0"
   }
 }

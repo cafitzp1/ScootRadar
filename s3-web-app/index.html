@@ -6,18 +6,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="shortcut icon" href="./favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
   <link rel="stylesheet" href="./css/index.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
-  <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js">
-  </script>
+  <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+  <!-- bootstrap day picker plugin -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css" />
+
   <title>Scoot Radar</title>
 </head>
 
 <body>
+
+  <nav id="nav-bar" class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- navbar brand -->
+    <a class="navbar-brand mb-0 h1" href="#">
+      <img src="./favicon.png" width="30" height="30" class="d-inline-block align-top">
+      Scoot Radar
+    </a>
+    <!-- live button -->
+    <button class="btn-sm btn-dark border-0 tool-tip m-3" id="live-btn" data-toggle="tooltip" title="Get live bird data">
+      Live View &nbsp; <i class="fa fa-refresh" aria-hidden="true"></i>
+    </button>
+    <!-- date input -->
+    <div class="bootstrap-iso" style="z-index: 4000 !important;">
+      <input class="form-control-sm bg-dark text-light border-0 tool-tip" id="date-picker" name="date" placeholder="MM/DD/YYYY"
+        type="text" data-toggle="tooltip" title="Select a date" />
+    </div>
+    <!-- hour select -->
+    <select id="hour-select" class="form-control-sm bg-dark text-light border-0 tool-tip" style="visibility: hidden;"
+      data-toggle="tooltip" title="Quickly switch hours with left and right arrow keys">
+      <option>12:00 AM</option>
+      <option>1:00 AM</option>
+      <option>2:00 AM</option>
+      <option>3:00 AM</option>
+      <option>4:00 AM</option>
+      <option>5:00 AM</option>
+      <option>6:00 AM</option>
+      <option>7:00 AM</option>
+      <option>8:00 AM</option>
+      <option>9:00 AM</option>
+      <option>10:00 AM</option>
+      <option>11:00 AM</option>
+      <option selected>12:00 PM</option>
+      <option>1:00 PM</option>
+      <option>2:00 PM</option>
+      <option>3:00 PM</option>
+      <option>4:00 PM</option>
+      <option>5:00 PM</option>
+      <option>6:00 PM</option>
+      <option>7:00 PM</option>
+      <option>8:00 PM</option>
+      <option>9:00 PM</option>
+      <option>10:00 PM</option>
+      <option>11:00 PM</option>
+    </select>
+    <!-- day select load indicator -->
+    <div class="spinner-border spinner-border-sm text-light m-3" id="date-load-indicator" style="display: none" role="status">
+    </div>
+    <!-- notification text -->
+    <span class="navbar-text-sm m-4 text-secondary tool-tip" id="notification-text" data-toggle="tooltip" title="">
+    </span>
+    <!-- theme dropdown -->
+    <div id="theme-dropdown" class="dropdown ml-auto">
+      <button id="theme-dropdown-btn" class="btn-sm btn-dark border-0 dropdown-toggle" data-toggle="dropdown">
+        Base Map
+      </button>
+      <div class="nav-dropdown dropdown-menu dropdown-menu-right pl-3" aria-labelledby="theme-dropdown">
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="theme-radio" id="dark-matter-radio" value="darkMatter">
+          <label class="form-check-label" for="dark-matter-radio">
+            Dark Matter
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="theme-radio" id="positron-radio" value="positron">
+          <label class="form-check-label" for="positron-radio">
+            Positron
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="theme-radio" id="voyager-radio" value="voyager">
+          <label class="form-check-label" for="voyager-radio">
+            Voyager
+          </label>
+        </div>
+      </div>
+    </div>
+    <!-- visualization dropdown -->
+    <div id="visualization-dropdown" class="dropdown ml-2">
+      <button class="btn-sm btn-dark border-0 dropdown-toggle" id="visualization-dropdown-btn" data-toggle="dropdown">
+        Overlay
+      </button>
+      <div class="nav-dropdown dropdown-menu dropdown-menu-right pl-3" aria-labelledby="visualization-dropdown-btn">
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="visualization-radio" id="markers-radio" value="markers">
+          <label class="form-check-label" for="markers-radio">
+            Markers
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="visualization-radio" id="heatmap-radio" value="heatmap">
+          <label class="form-check-label" for="heatmap-radio">
+            Heatmap
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="visualization-radio" id="clusters-radio" value="clusters">
+          <label class="form-check-label" for="clusters-radio">
+            Clusters
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </nav>
+
   <div id="mapid"></div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o"
+    crossorigin="anonymous"></script>
+  <script src="./js/util.js"></script>
   <script src="./js/index.js"></script>
 </body>
 
