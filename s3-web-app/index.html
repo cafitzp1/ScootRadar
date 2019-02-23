@@ -84,7 +84,7 @@
       <button id="theme-dropdown-btn" class="btn-sm btn-dark border-0 dropdown-toggle" data-toggle="dropdown">
         Base Map
       </button>
-      <div class="nav-style-dd dropdown-menu dropdown-menu-right pl-3" aria-labelledby="theme-dropdown">
+      <div class="nav-dropdown dropdown-menu dropdown-menu-right pl-3" aria-labelledby="theme-dropdown">
         <div class="form-check">
           <input type="radio" class="form-check-input" name="theme-radio" id="dark-matter-radio" value="darkMatter">
           <label class="form-check-label" for="dark-matter-radio">
@@ -106,27 +106,27 @@
       </div>
     </div>
     <!-- visualization dropdown -->
-    <div id="visualization-dropdown" class="dropdown ml-2 tool-tip">
-      <button class="btn-sm btn-dark border-0 dropdown-toggle tool-tip-child" id="visualization-dropdown-btn"
+    <div id="visualization-dropdown" class="dropdown ml-2">
+      <button class="btn-sm btn-dark border-0 dropdown-toggle" id="visualization-dropdown-btn"
         data-toggle="dropdown">
         Overlay
       </button>
-      <div class="nav-style-dd dropdown-menu dropdown-menu-right pl-3" aria-labelledby="visualization-dropdown-btn">
+      <div class="nav-dropdown dropdown-menu dropdown-menu-right pl-3" aria-labelledby="visualization-dropdown-btn">
         <div class="form-check">
-          <input type="checkbox" class="form-check-input visualization-check" id="markers-check" value="markers">
-          <label class="form-check-label" for="markers-check">
+          <input type="radio" class="form-check-input" name="visualization-radio" id="markers-radio" value="markers">
+          <label class="form-check-label" for="markers-radio">
             Markers
           </label>
         </div>
         <div class="form-check">
-          <input type="checkbox" class="form-check-input visualization-check" id="heatmap-check" value="heatmap">
-          <label class="form-check-label" for="heatmap-check">
+          <input type="radio" class="form-check-input" name="visualization-radio" id="heatmap-radio" value="heatmap">
+          <label class="form-check-label" for="heatmap-radio">
             Heatmap
           </label>
         </div>
         <div class="form-check">
-          <input type="checkbox" class="form-check-input visualization-check" id="clusters-check" value="clusters">
-          <label class="form-check-label" for="clusters-check">
+          <input type="radio" class="form-check-input" name="visualization-radio" id="clusters-radio" value="clusters">
+          <label class="form-check-label" for="clusters-radio">
             Clusters
           </label>
         </div>

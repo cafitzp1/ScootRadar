@@ -7,43 +7,36 @@ const ASU_LAT = -111.9347;
 const ZOOM = 16;
 const apiURL = "https://9j600ki9gk.execute-api.us-west-2.amazonaws.com/default/scoot-radar";
 
-let layers = {
-    positronMap: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
+let baseMaps = {
+    positron: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
         id: 'map.positron'
     }),
-    voyagerMap: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+    voyager: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
         id: 'map.voyager'
     }),
-    darkMatterMap: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", {
+    darkMatter: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", {
         id: 'map.darkMatter'
-    }),
+    })
+};
+
+let overlays = {
     markersOverlay: L.layerGroup(),
     heatOverlay: L.heatLayer(),
     clusterOverlay: L.markerClusterGroup()
-};
+}
 
 const map = new L.Map("mapid", {
     center: [ASU_LONG, ASU_LAT],
     zoom: ZOOM,
     maxZoom: ZOOM + 2,
-    layers: [layers.darkMatterMap]
+    layers: [baseMaps.darkMatter]
 });
-
-const baseMaps = {
-    "Positron": layers.positronMap,
-    "Voyager": layers.voyagerMap,
-    "Dark Matter": layers.darkMatterMap,
-};
-
-const overlays = {
-    "Markers": layers.markersOverlay,
-    "Heat": layers.heatOverlay,
-    "Clusters": layers.clusterOverlay
-}
 
 // let layerControl = L.control.layers(baseMaps, overlays, {}).addTo(map);
 let storedData = [];
-let activeThemeLayer = "";
+let currentData = {};
+let activeBaseMap = "";
+let activeOverlay = "";
 
 //--- METHODS ---//
 
@@ -59,7 +52,7 @@ $(document).ready(() => {
 
     // select starting basemap and overlay
     $('#voyager-radio').click();
-    $('#clusters-check').click();
+    $('#clusters-radio').click();
 
     // invoke live-btn click to populate live data
     $('#live-btn').click();
@@ -170,7 +163,8 @@ const showHourlyData = (datetime) => {
             // notify there are no birds to display
             $('#notification-text').html("<small>No birds to display</small>");
         } else {
-            addOverlays(birds);
+            currentData = birds;
+            addOverlay(birds);
             $('#notification-text').text("");
             $('#notification-text').html(`<small>Displaying ${birds.length} birds</small>`);
         }
@@ -202,59 +196,67 @@ const nextHour = () => {
         .prop("selected", true);
 };
 
-const addOverlays = (data) => {
-    console.log('addOverlays fired');
+const addOverlay = (data) => {
 
     // get parsed data for individual add overlay methods
     let birdData = returnBirdData(data);
+    let overlay = $('input[type=radio][name=visualization-radio]:checked').val();
 
-    // add if checked, remove else
-    if ($('#markers-check').is(':checked')) {
-        console.log('markers checked');
-        addMarkersOverlay(birdData.markers);
-    } else {
-        removeOverlay(layers.markersOverlay);
-    }
-
-    if ($('#heatmap-check').is(':checked')) {
-        console.log('heatmap checked');
-        addHeatOverlay(birdData.heatCircles);
-    } else {
-        removeOverlay(layers.heatOverlay);
-    }
-
-    if ($('#clusters-check').is(':checked')) {
-        console.log('clusters checked');
-        addClustersOverlay(birdData.markers);
-    } else {
-        removeOverlay(layers.clusterOverlay);
+    removeAllOverlays();
+    switch (overlay) {
+        case "markers":
+            addMarkersOverlay(birdData.defaultMarkers);
+            break;
+        case "heatmap":
+            addHeatOverlay(birdData.heatCircles);
+            break
+        case "clusters":
+            addClustersOverlay(birdData.clusterMarkers);
+            break;
     }
 }
 
 const returnBirdData = (response) => {
     let data = {
         heatCircles: [],
-        markers: []
+        defaultMarkers: [],
+        batteryMarkers: [],
+        clusterMarkers: []
     }
 
+    // logo icon
+    let logoIcon = L.icon({
+        iconUrl: './assets/bird.png',
+        iconSize: [18, 18],
+    });
+
     for (let item of response) {
-        // for the heatmap
-        data.heatCircles.push([item.location.latitude, item.location.longitude, 1]);
-        // for the clusters
-        let marker = L.marker([item.location.latitude, item.location.longitude]);
+        let heatCircle = [item.location.latitude, item.location.longitude, 1];
+        let markers = {
+            defaultMarker: L.marker([item.location.latitude, item.location.longitude], {icon: logoIcon}),
+            batteryMarker: L.marker([item.location.latitude, item.location.longitude]),
+            clusterMarker: L.marker([item.location.latitude, item.location.longitude], {icon: logoIcon})
+        };
+
+        // battery popup for all markers
         let battery = item.battery_level;
         if (battery >= 90) {
-            marker.bindPopup(`<i class="fa fa-battery-full" aria-hidden="true"></i> ${item.battery_level}`);
+            Object.keys(markers).forEach((m) => markers[m].bindPopup(`<i class="fa fa-battery-full" aria-hidden="true"></i> ${battery}`));
         } else if (battery >= 65) {
-            marker.bindPopup(`<i class="fa fa-battery-three-quarters" aria-hidden="true"></i> ${item.battery_level}`);
+            Object.keys(markers).forEach((m) => markers[m].bindPopup(`<i class="fa fa-battery-three-quarters" aria-hidden="true"></i> ${battery}`));
         } else if (battery >= 40) {
-            marker.bindPopup(`<i class="fa fa-battery-half" aria-hidden="true"></i> ${item.battery_level}`);
+            Object.keys(markers).forEach((m) => markers[m].bindPopup(`<i class="fa fa-battery-half" aria-hidden="true"></i> ${battery}`));
         } else if (battery >= 15) {
-            marker.bindPopup(`<i class="fa fa-battery-quarter" aria-hidden="true"></i> ${item.battery_level}`);
+            Object.keys(markers).forEach((m) => markers[m].bindPopup(`<i class="fa fa-battery-quarter" aria-hidden="true"></i> ${battery}`));
         } else {
-            marker.bindPopup(`<i class="fa fa-battery-empty" aria-hidden="true"></i> ${item.battery_level}`);
+            Object.keys(markers).forEach((m) => markers[m].bindPopup(`<i class="fa fa-battery-empty" aria-hidden="true"></i> ${battery}`));
         }
-        data.markers.push(marker);
+
+        // push
+        data.heatCircles.push(heatCircle);
+        data.defaultMarkers.push(markers.defaultMarker);
+        data.batteryMarkers.push(markers.batteryMarker);
+        data.clusterMarkers.push(markers.clusterMarker);
     }
 
     return data;
@@ -262,21 +264,21 @@ const returnBirdData = (response) => {
 
 const addMarkersOverlay = (markers) => {
     // save prev
-    let prevLayer = layers.markersOverlay;
+    let prevLayer = overlays.markersOverlay;
     // generate layer
-    layers.markersOverlay = new L.layerGroup(markers);
+    overlays.markersOverlay = new L.layerGroup(markers);
     // remove existing, add new
     if (map.hasLayer(prevLayer)) {
         map.removeLayer(prevLayer);
     }
-    map.addLayer(layers.markersOverlay);
+    map.addLayer(overlays.markersOverlay);
 }
 
 const addHeatOverlay = (heatCircles) => {
     // save prev
-    let prevLayer = layers.heatOverlay;
+    let prevLayer = overlays.heatOverlay;
     // generate layer
-    layers.heatOverlay = new L.heatLayer(heatCircles, {
+    overlays.heatOverlay = new L.heatLayer(heatCircles, {
         radius: 20,
         blur: 15,
         maxZoom: 17
@@ -285,20 +287,20 @@ const addHeatOverlay = (heatCircles) => {
     if (map.hasLayer(prevLayer)) {
         map.removeLayer(prevLayer);
     } else {}
-    map.addLayer(layers.heatOverlay);
+    map.addLayer(overlays.heatOverlay);
 };
 
 const addClustersOverlay = (markers) => {
     // save prev
-    let prevLayer = layers.clusterOverlay;
+    let prevLayer = overlays.clusterOverlay;
     // generate layer
-    layers.clusterOverlay = new L.markerClusterGroup();
-    layers.clusterOverlay.addLayers(markers);
+    overlays.clusterOverlay = new L.markerClusterGroup();
+    overlays.clusterOverlay.addLayers(markers);
     // remove existing, add new
     if (map.hasLayer(prevLayer)) {
         map.removeLayer(prevLayer);
     }
-    map.addLayer(layers.clusterOverlay);
+    map.addLayer(overlays.clusterOverlay);
 };
 
 const removeOverlay = (overlay) => {
@@ -308,22 +310,27 @@ const removeOverlay = (overlay) => {
 }
 
 const removeAllOverlays = () => {
-    map.removeLayer(layers.markersOverlay);
-    map.removeLayer(layers.heatOverlay);
-    map.removeLayer(layers.clusterOverlay);
+    Object.keys(overlays).forEach((layer) => removeOverlay(overlays[layer]));
 };
 
 const addAllOverlays = () => {
-    map.addOverlay(layers.markersOverlay);
-    map.addOverlay(layers.heatOverlay);
-    map.addOverlay(layers.clusterOverlay);
+    // map.addOverlay(baseMaps.markersOverlay);
+    // map.addOverlay(baseMaps.heatOverlay);
+    // map.addOverlay(baseMaps.clusterOverlay);
 };
 
-const changeTheme = (prevLayer) => {
+const changeBaseMap = (prevLayer) => {
     if (prevLayer) {
         map.removeLayer(prevLayer);
     }
-    map.addLayer(activeThemeLayer);
+    map.addLayer(activeBaseMap);
+};
+
+const changeOverlay = (prevLayer) => {
+    if (prevLayer) {
+        map.removeLayer(prevLayer);
+    }
+    addOverlay(currentData);
 };
 
 //--- EVENT HANDLERS ---//
@@ -351,8 +358,9 @@ $('#live-btn').click(() => {
 
             // store data from response, add to map
             let data = JSON.parse(response);
-            data = data.birds;
-            addOverlays(data);
+            let birds = data.birds;
+            currentData = birds;
+            addOverlay(birds);
         },
         error: (error) => {
             $('.fa-refresh').removeClass('fa-spin');
@@ -385,11 +393,21 @@ $('#hour-select').keydown((e) => {
 $('input[type=radio][name=theme-radio]').change(() => {
     // set active theme when radio is changed
     let baseMap = $('input[type=radio][name=theme-radio]:checked').val();
-    let prevLayer = activeThemeLayer;
-    activeThemeLayer = layers[baseMap + "Map"];
+    let prevLayer = activeBaseMap;
+    activeBaseMap = baseMaps[baseMap];
 
     // change to active theme
-    changeTheme(prevLayer);
+    changeBaseMap(prevLayer);
+});
+
+$('input[type=radio][name=visualization-radio]').change(() => {
+    // set active theme when radio is changed
+    let overlay = $('input[type=radio][name=visualization-radio]:checked').val();
+    let prevLayer = activeOverlay;
+    activeOverlay = overlays[overlay];
+
+    // change to active theme
+    changeOverlay(prevLayer);
 });
 
 $('.visualization-check').change((e) => {
@@ -401,12 +419,7 @@ $('.tool-tip').focus(() => {
     $('.tool-tip:focus').tooltip('hide');
 });
 
-$('.tool-tip-child').focus(() => {
-    // hides tooltips for divs (theme and visualization dropdown btns are divs)
-    $('.tool-tip-child').parent().tooltip('hide');
-});
-
-$('.nav-style-dd div label').click((e) => {
+$('.nav-dropdown div label').click((e) => {
     // prevents the theme and visualization dropdowns from disappearing when click labels
     e.stopPropagation();
 });
