@@ -1,31 +1,51 @@
 "use strict";
 
+//--- DATA ---//
+
 const ASU_LONG = 33.4187;
 const ASU_LAT = -111.9347;
 const ZOOM = 16;
-
-// this is the URL we need for communicating with our back end
 const apiURL = "https://9j600ki9gk.execute-api.us-west-2.amazonaws.com/default/scoot-radar";
 
-const basemaps = {
-    positron: "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-    darkMatter: "http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-    voyager: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-    toner: "http://{s}.sm.mapstack.stamen.com/(toner-lite,$fff[difference],$fff[@23],$fff[hsl-saturation@20])/{z}/{x}/{y}.png",
-    terrain: "http://{s}.sm.mapstack.stamen.com/(terrain)/{z}/{x}/{y}.png",
-    waterColor: "http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg"
+let layers = {
+    positronMap: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
+        id: 'map.positron'
+    }),
+    voyagerMap: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+        id: 'map.voyager'
+    }),
+    darkMatterMap: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", {
+        id: 'map.darkMatter'
+    }),
+    markersOverlay: L.layerGroup(),
+    heatOverlay: L.heatLayer(),
+    clusterOverlay: L.markerClusterGroup()
 };
 
-// this is the map object initialization
 const map = new L.Map("mapid", {
     center: [ASU_LONG, ASU_LAT],
     zoom: ZOOM,
-    maxZoom: ZOOM + 2
-}).addLayer(new L.TileLayer(basemaps.darkMatter));
+    maxZoom: ZOOM + 2,
+    layers: [layers.darkMatterMap]
+});
 
-// variables needed globally
-let heat = L.heatLayer();
+const baseMaps = {
+    "Positron": layers.positronMap,
+    "Voyager": layers.voyagerMap,
+    "Dark Matter": layers.darkMatterMap,
+};
+
+const overlays = {
+    "Markers": layers.markersOverlay,
+    "Heat": layers.heatOverlay,
+    "Clusters": layers.clusterOverlay
+}
+
+// let layerControl = L.control.layers(baseMaps, overlays, {}).addTo(map);
 let storedData = [];
+let activeThemeLayer = "";
+
+//--- METHODS ---//
 
 $(document).ready(() => {
     // initialize tooltips
@@ -37,15 +57,19 @@ $(document).ready(() => {
     // add the re-center button to the map
     L.easyButton("fa fa-crosshairs fa-lg", centerMap, "Re-center").addTo(map);
 
+    // select starting basemap and overlay
+    $('#voyager-radio').click();
+    $('#clusters-check').click();
+
     // invoke live-btn click to populate live data
     $('#live-btn').click();
 });
 
-function centerMap() {
+const centerMap = () => {
     map.setView([ASU_LONG, ASU_LAT]);
-}
+};
 
-function initializeDayPicker() {
+const initializeDayPicker = () => {
 
     // set the endDate (today) as the last selectable option, and startDate as first
     let endDate = new Date();
@@ -67,9 +91,9 @@ function initializeDayPicker() {
     // apply options and register changeDate event function handler
     date_input.datepicker(options)
         .on('changeDate', datePicker_changeDate);
-}
+};
 
-function datePicker_changeDate() {
+const datePicker_changeDate = () => {
 
     // fade the text of the live-btn and show the hour-select
     $('#live-btn').css('color', '#8e8e8e');
@@ -88,12 +112,11 @@ function datePicker_changeDate() {
         success: (response) => {
             // stop load indicator, notify
             $('#date-load-indicator').css('display', 'none');
-            console.log('AJAX successful');
 
             // store data; attributes: Count, Items, ScannedCount
             let data = response;
 
-            console.log(`${data.Count} items retrieved from DynamoDB`);
+            console.log(`${data.Count} items retrieved`);
             console.log(data);
 
             // iterate and store items; attributes: recordID, record, dateCreated, ttl
@@ -115,14 +138,9 @@ function datePicker_changeDate() {
             console.error(error);
         }
     });
-}
+};
 
-$('.tool-tip').focus(() => {
-    // hide tooltip for elementa while focused 
-    $('.tool-tip:focus').tooltip('hide');
-});
-
-function showHourlyData(datetime) {
+const showHourlyData = (datetime) => {
     // display the data set which correlates with the hour passed as a parameter
 
     // get datetime as the formatted string, get hour to display
@@ -133,6 +151,7 @@ function showHourlyData(datetime) {
     // store data for the record time that matches the hour
     let dataToDisplay = null,
         birds = null;
+
     for (let item of storedData) {
         let recordHour = item[0].substring(0, 11) + "";
         //console.log('- Hour: ' + recordHour);
@@ -151,7 +170,7 @@ function showHourlyData(datetime) {
             // notify there are no birds to display
             $('#notification-text').html("<small>No birds to display</small>");
         } else {
-            addHeat(birds);
+            addOverlays(birds);
             $('#notification-text').text("");
             $('#notification-text').html(`<small>Displaying ${birds.length} birds</small>`);
         }
@@ -160,13 +179,154 @@ function showHourlyData(datetime) {
     else {
         $('#notification-text').html("<small>No data :(</small>");
     }
+};
+
+const prevHour = () => {
+    // select the previous hour in the hour select list
+    $("#hour-select > option:selected")
+        .prop("selected", false)
+        .prev()
+        .prop("selected", true);
+};
+
+const nextHour = () => {
+    // if on the last item in the list, return
+    if ($("#hour-select option:last").is(":selected")) {
+        return;
+    }
+
+    // select the next hour in the hour select list
+    $("#hour-select > option:selected")
+        .prop("selected", false)
+        .next()
+        .prop("selected", true);
+};
+
+const addOverlays = (data) => {
+    console.log('addOverlays fired');
+
+    // get parsed data for individual add overlay methods
+    let birdData = returnBirdData(data);
+
+    // add if checked, remove else
+    if ($('#markers-check').is(':checked')) {
+        console.log('markers checked');
+        addMarkersOverlay(birdData.markers);
+    } else {
+        removeOverlay(layers.markersOverlay);
+    }
+
+    if ($('#heatmap-check').is(':checked')) {
+        console.log('heatmap checked');
+        addHeatOverlay(birdData.heatCircles);
+    } else {
+        removeOverlay(layers.heatOverlay);
+    }
+
+    if ($('#clusters-check').is(':checked')) {
+        console.log('clusters checked');
+        addClustersOverlay(birdData.markers);
+    } else {
+        removeOverlay(layers.clusterOverlay);
+    }
 }
 
-$('#test-btn').click(() => {
-    console.log('testBtn_click fired');
+const returnBirdData = (response) => {
+    let data = {
+        heatCircles: [],
+        markers: []
+    }
 
-    // test stuff ...
-});
+    for (let item of response) {
+        // for the heatmap
+        data.heatCircles.push([item.location.latitude, item.location.longitude, 1]);
+        // for the clusters
+        let marker = L.marker([item.location.latitude, item.location.longitude]);
+        let battery = item.battery_level;
+        if (battery > 90) {
+            marker.bindPopup(`<i class="fa fa-battery-full" aria-hidden="true"></i> ${item.battery_level}`);
+        } else if (battery > 65) {
+            marker.bindPopup(`<i class="fa fa-battery-three-quarters" aria-hidden="true"></i> ${item.battery_level}`);
+        } else if (battery > 40) {
+            marker.bindPopup(`<i class="fa fa-battery-half" aria-hidden="true"></i> ${item.battery_level}`);
+        } else if (battery > 15) {
+            marker.bindPopup(`<i class="fa fa-battery-quarter" aria-hidden="true"></i> ${item.battery_level}`);
+        } else {
+            marker.bindPopup(`<i class="fa fa-battery-empty" aria-hidden="true"></i> ${item.battery_level}`);
+        }
+        data.markers.push(marker);
+    }
+
+    return data;
+}
+
+const addMarkersOverlay = (markers) => {
+    // save prev
+    let prevLayer = layers.markersOverlay;
+    // generate layer
+    layers.markersOverlay = new L.layerGroup(markers);
+    // remove existing, add new
+    if (map.hasLayer(prevLayer)) {
+        map.removeLayer(prevLayer);
+    }
+    map.addLayer(layers.markersOverlay);
+}
+
+const addHeatOverlay = (heatCircles) => {
+    // save prev
+    let prevLayer = layers.heatOverlay;
+    // generate layer
+    layers.heatOverlay = new L.heatLayer(heatCircles, {
+        radius: 20,
+        blur: 15,
+        maxZoom: 17
+    });
+    // remove existing, add new
+    if (map.hasLayer(prevLayer)) {
+        map.removeLayer(prevLayer);
+    } else {}
+    map.addLayer(layers.heatOverlay);
+};
+
+const addClustersOverlay = (markers) => {
+    // save prev
+    let prevLayer = layers.clusterOverlay;
+    // generate layer
+    layers.clusterOverlay = new L.markerClusterGroup();
+    layers.clusterOverlay.addLayers(markers);
+    // remove existing, add new
+    if (map.hasLayer(prevLayer)) {
+        map.removeLayer(prevLayer);
+    }
+    map.addLayer(layers.clusterOverlay);
+};
+
+const removeOverlay = (overlay) => {
+    if (map.hasLayer(overlay)) {
+        map.removeLayer(overlay);
+    }
+}
+
+const removeAllOverlays = () => {
+    map.removeLayer(layers.markersOverlay);
+    map.removeLayer(layers.heatOverlay);
+    map.removeLayer(layers.clusterOverlay);
+};
+
+const addAllOverlays = () => {
+    map.addOverlay(layers.markersOverlay);
+    map.addOverlay(layers.heatOverlay);
+    map.addOverlay(layers.clusterOverlay);
+};
+
+const changeTheme = (prevLayer) => {
+    if (prevLayer) {
+        map.removeLayer(prevLayer);
+    }
+    map.addLayer(activeThemeLayer);
+};
+
+//--- EVENT HANDLERS ---//
 
 $('#live-btn').click(() => {
 
@@ -188,18 +348,26 @@ $('#live-btn').click(() => {
             // stop loading, notify
             $('.fa-refresh').removeClass('fa-spin');
             $('#notification-text').html(`<small>Last updated: ${localDateNow}</small>`);
-            console.log('AJAX successful');
 
             // store data from response, add to map
             let data = JSON.parse(response);
-            let birds = data.birds;
-            addHeat(birds);
+            data = data.birds;
+            addOverlays(data);
         },
         error: (error) => {
             $('.fa-refresh').removeClass('fa-spin');
             console.error(error);
         }
     });
+});
+
+$('#hour-select').change(() => {
+    // get day, hour, pass to showHourlyData
+    let date = $("#date-picker").val();
+    let time = $('#hour-select option:selected').val();
+    let datetime = `${date} ${time}`;
+
+    showHourlyData(datetime);
 });
 
 $('#hour-select').keydown((e) => {
@@ -214,56 +382,31 @@ $('#hour-select').keydown((e) => {
     $("#hour-select").trigger('change');
 });
 
-$('#hour-select').change(() => {
-    // get day, hour, pass to showHourlyData
-    let date = $("#date-picker").val();
-    let time = $('#hour-select option:selected').val();
-    let datetime = `${date} ${time}`;
+$('input[type=radio][name=theme-radio]').change(() => {
+    // set active theme when radio is changed
+    let baseMap = $('input[type=radio][name=theme-radio]:checked').val();
+    let prevLayer = activeThemeLayer;
+    activeThemeLayer = layers[baseMap + "Map"];
 
-    showHourlyData(datetime);
+    // change to active theme
+    changeTheme(prevLayer);
 });
 
-function prevHour() {
-    // select the previous hour in the hour select list
-    $("#hour-select > option:selected")
-        .prop("selected", false)
-        .prev()
-        .prop("selected", true);
-}
+$('.visualization-check').change((e) => {
+    //console.log(e.target.value);
+})
 
-function nextHour() {
-    // if on the last item in the list, return
-    if ($("#hour-select option:last").is(":selected")) {
-        return;
-    }
+$('.tool-tip').focus(() => {
+    // hides tooltips for most elements
+    $('.tool-tip:focus').tooltip('hide');
+});
 
-    // select the next hour in the hour select list
-    $("#hour-select > option:selected")
-        .prop("selected", false)
-        .next()
-        .prop("selected", true);
-}
+$('.tool-tip-child').focus(() => {
+    // hides tooltips for divs (theme and visualization dropdown btns are divs)
+    $('.tool-tip-child').parent().tooltip('hide');
+});
 
-function addHeat(birds) {
-    // remove existing layer
-    removeHeat();
-
-    // we need an array of coordinates for the heat map
-    let birdLocations = [];
-
-    // iterate birds: push latitude, longitude, and 1 for radius of the heat circles
-    for (let bird of birds) {
-        birdLocations.push([bird.location.latitude, bird.location.longitude, 1]);
-    }
-
-    // using birdLocations array, add heat circles to our map object
-    heat = L.heatLayer(birdLocations, {
-        radius: 20,
-        blur: 15,
-        maxZoom: 17,
-    }).addTo(map);
-}
-
-function removeHeat() {
-    map.removeLayer(heat);
-}
+$('.nav-style-dd div label').click((e) => {
+    // prevents the theme and visualization dropdowns from disappearing when click labels
+    e.stopPropagation();
+});

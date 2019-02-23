@@ -11,10 +11,13 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
   <link rel="stylesheet" href="./css/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
   <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
   <!-- bootstrap day picker plugin -->
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
@@ -32,19 +35,19 @@
       Scoot Radar
     </a>
     <!-- live button -->
-    <button class="btn-sm btn-dark border-0 tool-tip" id="live-btn" data-toggle="tooltip" data-placement="bottom" title="Get live bird data"
-      data-delay="500">
+    <button class="btn-sm btn-dark border-0 tool-tip m-3" id="live-btn" data-toggle="tooltip" data-placement="bottom"
+      title="Get live bird data" data-delay="500">
       Live View &nbsp; <i class="fa fa-refresh" aria-hidden="true"></i>
     </button>
     <!-- date input -->
     <div class="bootstrap-iso">
       <input class="form-control-sm bg-dark text-light border-0 tool-tip" id="date-picker" name="date" placeholder="MM/DD/YYYY"
-        type="text" data-toggle="tooltip"
-        data-placement="bottom" title="Select a date" data-delay="500"/>
+        type="text" data-toggle="tooltip" data-placement="bottom" title="Select a date" data-delay="500" />
     </div>
     <!-- hour select -->
-    <select id="hour-select" class="form-control-sm bg-dark text-light border-0 tool-tip" style="visibility: hidden" data-toggle="tooltip"
-      data-placement="bottom" title="Use left and right arrow keys while focused to quickly switch hours" data-delay="500">
+    <select id="hour-select" class="form-control-sm bg-dark text-light border-0 tool-tip" style="visibility: hidden"
+      data-toggle="tooltip" data-placement="bottom" title="Use left and right arrow keys while focused to quickly switch hours"
+      data-delay="500">
       <option>12:00 AM</option>
       <option>1:00 AM</option>
       <option>2:00 AM</option>
@@ -76,8 +79,59 @@
     <!-- notification text -->
     <span class="navbar-text-sm m-4 text-secondary" id="notification-text">
     </span>
-    <!-- test -->
-    <button class="btn-sm btn-dark" id="test-btn" style="display: none">Test</button>
+    <!-- theme dropdown -->
+    <div id="theme-dropdown" class="dropdown ml-auto">
+      <button id="theme-dropdown-btn" class="btn-sm btn-dark border-0 dropdown-toggle" data-toggle="dropdown">
+        Theme
+      </button>
+      <div class="nav-style-dd dropdown-menu dropdown-menu-right pl-3" aria-labelledby="theme-dropdown">
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="theme-radio" id="dark-matter-radio" value="darkMatter">
+          <label class="form-check-label" for="dark-matter-radio">
+            Dark Matter
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="theme-radio" id="positron-radio" value="positron">
+          <label class="form-check-label" for="positron-radio">
+            Positron
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" name="theme-radio" id="voyager-radio" value="voyager">
+          <label class="form-check-label" for="voyager-radio">
+            Voyager
+          </label>
+        </div>
+      </div>
+    </div>
+    <!-- visualization dropdown -->
+    <div id="visualization-dropdown" class="dropdown ml-2 tool-tip">
+      <button class="btn-sm btn-dark border-0 dropdown-toggle tool-tip-child" id="visualization-dropdown-btn"
+        data-toggle="dropdown">
+        Visualization
+      </button>
+      <div class="nav-style-dd dropdown-menu dropdown-menu-right pl-3" aria-labelledby="visualization-dropdown-btn">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input visualization-check" id="markers-check" value="markers">
+          <label class="form-check-label" for="markers-check">
+            Markers
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input visualization-check" id="heatmap-check" value="heatmap">
+          <label class="form-check-label" for="heatmap-check">
+            Heatmap
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input visualization-check" id="clusters-check" value="clusters">
+          <label class="form-check-label" for="clusters-check">
+            Clusters
+          </label>
+        </div>
+      </div>
+    </div>
 
   </nav>
 

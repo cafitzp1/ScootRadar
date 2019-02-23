@@ -19,10 +19,6 @@ body {
     height: 95vh;
 }
 
-#live-btn {
-    margin-left: 10px
-}   
-
 #live-btn:hover {
     cursor: pointer !important;
 }
@@ -32,8 +28,8 @@ body {
 }
 
 #date-picker {
-    width: 100px;
-    margin-left: 12px;
+    width: 104px;
+    margin-left: 16px;
 }
 
 #hour-select {
