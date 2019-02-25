@@ -32,7 +32,6 @@ const map = new L.Map("mapid", {
     layers: [baseMaps.darkMatter]
 });
 
-// let layerControl = L.control.layers(baseMaps, overlays, {}).addTo(map);
 let storedData = [];
 let currentData = {};
 let activeBaseMap = "";
@@ -143,7 +142,6 @@ const showHourlyData = (dateTime) => {
     // get datetime as the formatted string, get hour to display
     let dateTimeString = Util.getTimeString(dateTime);
     let hourToDisplay = dateTimeString.substring(0, 11) + "";
-    //console.log('Hour to match: ' + hourToDisplay);
 
     // store data for the record time that matches the hour
     let recordStoredDateTimeString = null,
@@ -153,7 +151,6 @@ const showHourlyData = (dateTime) => {
 
     for (let item of storedData) {
         let recordHour = item[0].substring(0, 11) + "";
-        //console.log('- Hour: ' + recordHour);
 
         // set dataToDisplay if record matches hour
         if (recordHour == hourToDisplay) {
@@ -228,6 +225,7 @@ const addOverlay = (data) => {
 }
 
 const returnBirdData = (response) => {
+    // extract data from response and store in arrays for easier access
     let data = {
         heatCircles: [],
         defaultMarkers: [],
@@ -235,21 +233,24 @@ const returnBirdData = (response) => {
         clusterMarkers: []
     }
 
-    // logo icon
+    // logo icon for the individual markers
     let logoIcon = L.icon({
         iconUrl: './assets/bird.png',
         iconSize: [22, 22],
     });
 
+    // iterate bird items, extract data for each
     for (let item of response) {
         let heatCircle = [item.location.latitude, item.location.longitude, 1];
         let markers = {
+            // NOTE: default and cluster markers are set to the same logo
+            // TODO: implement battery marker
             defaultMarker: L.marker([item.location.latitude, item.location.longitude], {icon: logoIcon}),
             batteryMarker: L.marker([item.location.latitude, item.location.longitude]),
             clusterMarker: L.marker([item.location.latitude, item.location.longitude], {icon: logoIcon})
         };
 
-        // battery popup for all markers
+        // battery popup for all markers; set icon according to battery level
         let battery = item.battery_level;
         if (battery >= 90) {
             Object.keys(markers).forEach((m) => markers[m].bindPopup(`<i class="fa fa-battery-full" aria-hidden="true"></i> ${battery}`));
@@ -263,7 +264,7 @@ const returnBirdData = (response) => {
             Object.keys(markers).forEach((m) => markers[m].bindPopup(`<i class="fa fa-battery-empty" aria-hidden="true"></i> ${battery}`));
         }
 
-        // push
+        // push items generated into each respective array
         data.heatCircles.push(heatCircle);
         data.defaultMarkers.push(markers.defaultMarker);
         data.batteryMarkers.push(markers.batteryMarker);
@@ -274,41 +275,35 @@ const returnBirdData = (response) => {
 }
 
 const addMarkersOverlay = (markers) => {
-    // save prev
+    // save existing
     let prevLayer = overlays.markersOverlay;
     // generate layer
     overlays.markersOverlay = new L.layerGroup(markers);
     // remove existing, add new
-    if (map.hasLayer(prevLayer)) {
-        map.removeLayer(prevLayer);
-    }
+    removeOverlay(prevLayer);
     map.addLayer(overlays.markersOverlay);
 }
 
 const addHeatOverlay = (heatCircles) => {
-    // save prev
+    // save existing
     let prevLayer = overlays.heatOverlay;
     // generate layer
     overlays.heatOverlay = new L.heatLayer(heatCircles, {
         //gradient: {0.4: 'blue', 0.7: 'lime', 1: 'red'}
     });
     // remove existing, add new
-    if (map.hasLayer(prevLayer)) {
-        map.removeLayer(prevLayer);
-    } else {}
+    removeOverlay(prevLayer);
     map.addLayer(overlays.heatOverlay);
 };
 
 const addClustersOverlay = (markers) => {
-    // save prev
+    // save existing
     let prevLayer = overlays.clusterOverlay;
     // generate layer
     overlays.clusterOverlay = new L.markerClusterGroup();
     overlays.clusterOverlay.addLayers(markers);
     // remove existing, add new
-    if (map.hasLayer(prevLayer)) {
-        map.removeLayer(prevLayer);
-    }
+    removeOverlay(prevLayer);
     map.addLayer(overlays.clusterOverlay);
 };
 
@@ -319,13 +314,9 @@ const removeOverlay = (overlay) => {
 }
 
 const removeAllOverlays = () => {
-    Object.keys(overlays).forEach((layer) => removeOverlay(overlays[layer]));
-};
-
-const addAllOverlays = () => {
-    // map.addOverlay(baseMaps.markersOverlay);
-    // map.addOverlay(baseMaps.heatOverlay);
-    // map.addOverlay(baseMaps.clusterOverlay);
+    Object.keys(overlays).forEach((layer) => {
+        removeOverlay(overlays[layer])
+    });
 };
 
 const changeBaseMap = (prevLayer) => {
